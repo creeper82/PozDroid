@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pozdroid"
+    namespace = "com.creeper82.pozdroid"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.pozdroid"
+        applicationId = "com.creeper82.pozdroid"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

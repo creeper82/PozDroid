@@ -1,4 +1,4 @@
-package com.example.pozdroid
+package com.creeper82.pozdroid
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.pozdroid", appContext.packageName)
+        assertEquals("com.creeper82.pozdroid", appContext.packageName)
     }
 }

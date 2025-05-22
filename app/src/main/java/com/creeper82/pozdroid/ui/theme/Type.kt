@@ -1,4 +1,4 @@
-package com.example.pozdroid.ui.theme
+package com.creeper82.pozdroid.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

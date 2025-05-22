@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">PozDroid</string>
+    <string name="application_logo">Application logo</string>
+    <string name="welcome">Welcome</string>
+    <string name="connect_and_continue">Connect and continue</string>
+    <string name="localhost_placeholder_address">http://localhost:5000</string>
+    <string name="server_address">Server address</string>
+    <string name="app_requires_poznode_configure_the_connection">This application connects to a PozNode server. Please configure the connection below</string>
+    <string name="your_favs_will_appear_here">Your favorites will appear here. Use the Search tab to find a stop or line.</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.pozdroid
+package com.creeper82.pozdroid
 
 import org.junit.Test
 

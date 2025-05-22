@@ -1,6 +1,5 @@
-package com.example.pozdroid.ui.theme
+package com.creeper82.pozdroid.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
