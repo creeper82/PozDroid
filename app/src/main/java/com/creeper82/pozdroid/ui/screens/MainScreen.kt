@@ -6,7 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,7 +31,7 @@ fun PozDroidApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
-    var showIntro by remember { mutableStateOf(true) }
+    var showIntro by rememberSaveable { mutableStateOf(true) }
     val screenModifier = Modifier
         .fillMaxSize()
         .padding(16.dp)
@@ -69,6 +69,11 @@ fun PozDroidApp(
                     modifier = modifier.fillMaxSize(),
                     onBollardSelected = {},
                     onLineSelected = {}
+                )
+            }
+            composable(route = PozDroidScreen.Settings.name) {
+                PozDroidSettingsScreen(
+                    modifier = modifier.fillMaxSize()
                 )
             }
         }
