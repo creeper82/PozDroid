@@ -13,6 +13,8 @@ import com.creeper82.pozdroid.R
 @Composable
 fun PozDroidHeader(modifier: Modifier = Modifier) {
     TopAppBar(
-        title = { Text(text = stringResource(R.string.app_name)) }
+        title = {
+            Text(text = stringResource(R.string.app_name), modifier = modifier)
+        }
     )
 }

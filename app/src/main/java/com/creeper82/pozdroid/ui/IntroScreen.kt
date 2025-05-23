@@ -35,7 +35,7 @@ fun PozDroidIntroScreen(
     modifier: Modifier = Modifier,
     onAddressSelected: (address: String) -> Unit = {}
 ) {
-    var address: String = ""
+    var address = ""
 
     Column(
         modifier = modifier,
@@ -102,7 +102,8 @@ fun AddressTextField(
 @Composable
 fun WelcomeAndLogo(modifier: Modifier = Modifier) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
         Image(
             painter = painterResource(R.drawable.ic_launcher_foreground),

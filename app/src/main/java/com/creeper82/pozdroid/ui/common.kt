@@ -8,5 +8,5 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun Header(text: String, modifier: Modifier = Modifier) {
-    Text(text = text, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Text(text = text, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = modifier)
 }
