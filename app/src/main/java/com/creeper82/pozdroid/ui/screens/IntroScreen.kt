@@ -1,4 +1,4 @@
-package com.creeper82.pozdroid.ui
+package com.creeper82.pozdroid.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +46,13 @@ fun PozDroidIntroScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        WelcomeAndLogo()
+        Surface(
+            tonalElevation = 2.dp,
+            shadowElevation = 2.dp,
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            WelcomeAndLogo(modifier = Modifier.padding(16.dp))
+        }
         Spacer(
             modifier = Modifier.height(64.dp)
         )
@@ -56,16 +66,18 @@ fun PozDroidIntroScreen(
             Spacer(
                 modifier = Modifier.height(16.dp)
             )
-            AddressTextField(modifier = Modifier.fillMaxWidth(), onAddressChanged = { newAddress ->
-                address = newAddress
-            })
+            AddressTextField(
+                modifier = Modifier.fillMaxWidth(),
+                onAddressChanged = { newAddress ->
+                    address = newAddress
+                },
+                onSubmit = { onAddressSelected(address) }
+            )
             Spacer(
                 modifier = Modifier.height(32.dp)
             )
             Button(
-                onClick = {
-                    onAddressSelected(address)
-                },
+                onClick = { onAddressSelected(address) },
             ) {
                 Text(
                     text = stringResource(R.string.connect_and_continue),
@@ -80,7 +92,8 @@ fun PozDroidIntroScreen(
 @Composable
 fun AddressTextField(
     modifier: Modifier = Modifier,
-    onAddressChanged: (String) -> Unit
+    onAddressChanged: (String) -> Unit,
+    onSubmit: () -> Unit = {}
 ) {
     var address by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -90,8 +103,13 @@ fun AddressTextField(
             address = newText
             onAddressChanged(newText.text)
         },
+        singleLine = true,
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Uri
+            keyboardType = KeyboardType.Uri,
+            imeAction = ImeAction.Go,
+        ),
+        keyboardActions = KeyboardActions(
+            onGo = { onSubmit() }
         ),
         label = { Text(text = stringResource(R.string.server_address)) },
         placeholder = { Text(text = stringResource(R.string.localhost_placeholder_address)) },

@@ -1,17 +1,21 @@
-package com.creeper82.pozdroid.ui
+package com.creeper82.pozdroid.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.creeper82.pozdroid.ui.PozDroidBottomNav
+import com.creeper82.pozdroid.ui.PozDroidHeader
 
 enum class PozDroidScreen {
     Intro,
@@ -27,36 +31,44 @@ fun PozDroidApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
-    val showIntro = true
+    var showIntro by remember { mutableStateOf(true) }
+    val screenModifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)
+
     Scaffold(
         topBar = {
             PozDroidHeader()
         },
-        modifier = modifier
+        modifier = modifier,
+        bottomBar = { if (!showIntro) PozDroidBottomNav(navController) }
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = if (showIntro) PozDroidScreen.Intro.name else PozDroidScreen.Home.name,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
-            composable(route = PozDroidScreen.Home.name) {
-                PozDroidHomeScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                )
-            }
             composable(route = PozDroidScreen.Intro.name) {
                 PozDroidIntroScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = screenModifier,
                     onAddressSelected = { address ->
                         navController.navigate(PozDroidScreen.Home.name)
+                        showIntro = false
                     }
+                )
+            }
+            composable(route = PozDroidScreen.Home.name) {
+                PozDroidHomeScreen(
+                    modifier = screenModifier
+                )
+            }
+            composable(route = PozDroidScreen.Search.name) {
+                PozDroidSearchScreen(
+                    modifier = modifier.fillMaxSize(),
+                    onBollardSelected = {},
+                    onLineSelected = {}
                 )
             }
         }
