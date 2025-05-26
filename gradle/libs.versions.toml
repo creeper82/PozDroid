@@ -13,6 +13,8 @@ material = "1.4.3"
 materialIconsCore = "1.4.0"
 materialIconsExtended = "1.4.0"
 library = "1.1.1"
+retrofit = "3.0.0"
+converterGson = "3.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,8 @@ androidx-material = { group = "androidx.compose.material", name = "material", ve
 androidx-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core", version.ref = "materialIconsCore" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 library = { group = "me.zhanghai.compose.preference", name = "library", version.ref = "library" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
