@@ -1,66 +1,56 @@
 package com.creeper82.pozdroid.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.creeper82.pozdroid.R
-import com.creeper82.pozdroid.ui.Header
-import com.creeper82.pozdroid.ui.Padding
+import me.zhanghai.compose.preference.footerPreference
+import me.zhanghai.compose.preference.preferenceCategory
+import me.zhanghai.compose.preference.sliderPreference
+import me.zhanghai.compose.preference.textFieldPreference
+
+val parseUrl: (String) -> String = { url ->
+    val trimmed = url.trim()
+    if (trimmed.endsWith("/")) trimmed.dropLast(1) else trimmed
+}
 
 @Composable
 fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
-    Column(
+    LazyColumn(
         modifier = modifier
     ) {
-        Padding(16.dp) {
-            Header("Settings")
-        }
-
-        SettingsSection("Server configuration")
-        Setting(stringResource(R.string.server_address), "http://localhost:5000")
-        Setting("Refresh departures", "every 10 seconds")
-        Spacer(Modifier.height(16.dp))
-
-        SettingsSection("About")
-        Setting("PozDroid", "version 1.0")
-    }
-}
-
-@Composable
-fun Setting(
-    name: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
-) {
-    ListItem(
-        headlineContent = { Text(name) },
-        supportingContent = { Text(value) },
-        modifier = modifier.clickable(onClick = onClick)
-    )
-}
-
-@Composable
-fun SettingsSection(sectionName: String, modifier: Modifier = Modifier) {
-    Text(
-        sectionName, modifier = modifier.padding(start = 16.dp), style = TextStyle(
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 14.sp
+        preferenceCategory(
+            key = "server",
+            title = { Text(stringResource(R.string.server_configuration)) },
+            modifier = Modifier
         )
-    )
+
+        textFieldPreference(
+            key = "server_address",
+            defaultValue = "http://localhost:5000",
+            title = { Text(stringResource(R.string.server_address)) },
+            textToValue = parseUrl,
+            summary = { Text(text = it) }
+        )
+
+        sliderPreference(
+            key = "refresh_frequency",
+            defaultValue = 10f,
+            title = { Text(stringResource(R.string.refresh_departures)) },
+            summary = { Text(text = stringResource(R.string.every_seconds, it.toInt())) },
+            valueRange = 10f..30f,
+            valueSteps = 3
+        )
+
+        footerPreference(
+            key = "footer",
+            summary = { Text(stringResource(R.string.you_are_using_pozdroid_v1_0)) }
+        )
+    }
 }
 
 @Preview(showSystemUi = false, showBackground = true)

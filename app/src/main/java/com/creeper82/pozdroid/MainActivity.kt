@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.creeper82.pozdroid.ui.screens.PozDroidApp
 import com.creeper82.pozdroid.ui.theme.PozDroidTheme
+import me.zhanghai.compose.preference.ProvidePreferenceLocals
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,7 +14,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PozDroidTheme {
-                PozDroidApp()
+                ProvidePreferenceLocals {
+                    PozDroidApp()
+                }
             }
         }
     }
