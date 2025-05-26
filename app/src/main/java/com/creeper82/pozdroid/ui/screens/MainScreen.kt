@@ -1,5 +1,7 @@
 package com.creeper82.pozdroid.ui.screens
 
+import android.content.SharedPreferences
+import android.preference.PreferenceManager
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -14,6 +16,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.creeper82.pozdroid.PrefKeys
+import com.creeper82.pozdroid.services.impl.PozNodeApiClient
 import com.creeper82.pozdroid.ui.PozDroidBottomNav
 import com.creeper82.pozdroid.ui.PozDroidHeader
 
@@ -53,9 +57,17 @@ fun PozDroidApp(
             composable(route = PozDroidScreen.Intro.name) {
                 PozDroidIntroScreen(
                     modifier = screenModifier,
-                    onAddressSelected = {
+                    onAddressSelected = { context ->
                         navController.navigate(PozDroidScreen.Home.name)
                         showIntro = false
+
+                        val prefs: SharedPreferences =
+                            PreferenceManager.getDefaultSharedPreferences(context)
+                        val address = prefs.getString(
+                            PrefKeys.SERVER_ADDRESS,
+                            PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT
+                        )!!
+                        PozNodeApiClient.refreshInstance(address)
                     }
                 )
             }

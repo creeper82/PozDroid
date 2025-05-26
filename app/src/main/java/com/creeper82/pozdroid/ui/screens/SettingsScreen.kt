@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.creeper82.pozdroid.PrefKeys
 import com.creeper82.pozdroid.R
 import me.zhanghai.compose.preference.footerPreference
 import me.zhanghai.compose.preference.preferenceCategory
@@ -30,16 +31,16 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
         )
 
         textFieldPreference(
-            key = "server_address",
-            defaultValue = "http://localhost:5000",
+            key = PrefKeys.SERVER_ADDRESS,
+            defaultValue = PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT,
             title = { Text(stringResource(R.string.server_address)) },
             textToValue = parseUrl,
             summary = { Text(text = it) }
         )
 
         sliderPreference(
-            key = "refresh_frequency",
-            defaultValue = 10f,
+            key = PrefKeys.REFRESH_FREQUENCY,
+            defaultValue = PrefKeys.Defaults.REFRESH_FREQUENCY_DEFAULT,
             title = { Text(stringResource(R.string.refresh_departures)) },
             summary = { Text(text = stringResource(R.string.every_seconds, it.toInt())) },
             valueRange = 10f..30f,
