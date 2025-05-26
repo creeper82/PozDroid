@@ -53,7 +53,7 @@ fun PozDroidApp(
             composable(route = PozDroidScreen.Intro.name) {
                 PozDroidIntroScreen(
                     modifier = screenModifier,
-                    onAddressSelected = { address ->
+                    onAddressSelected = {
                         navController.navigate(PozDroidScreen.Home.name)
                         showIntro = false
                     }

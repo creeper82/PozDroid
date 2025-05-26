@@ -10,4 +10,8 @@
     <string name="no_results">No results</string>
     <string name="no_announcements">No announcements</string>
     <string name="announcements">Announcements (%1$s)</string>
+    <string name="server_configuration">Server configuration</string>
+    <string name="refresh_departures">Refresh departures</string>
+    <string name="you_are_using_pozdroid_v1_0">You are using PozDroid v1.0</string>
+    <string name="every_seconds">every %1$s seconds</string>
 </resources>

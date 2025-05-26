@@ -44,7 +44,7 @@ fun PozDroidBottomNav(navController: NavController, modifier: Modifier = Modifie
                             saveState = true
                         }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 }
             )
