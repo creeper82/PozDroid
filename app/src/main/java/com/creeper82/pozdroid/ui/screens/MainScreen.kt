@@ -81,6 +81,15 @@ fun PozDroidApp(
                     modifier = screenModifier
                 )
             }
+            composable(route = PozDroidScreen.Departures.name) {
+                PozDroidDeparturesScreen(
+                    bollardName = "Rynek Wildecki",
+                    bollardSymbol = "RYWI74",
+                    announcements = emptyArray(),
+                    departures = emptyArray(),
+                    modifier = screenModifier
+                )
+            }
         }
     }
 }

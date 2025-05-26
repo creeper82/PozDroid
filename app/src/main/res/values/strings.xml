@@ -8,4 +8,6 @@
     <string name="app_requires_poznode_configure_the_connection">This application connects to a PozNode server. Please configure the connection below</string>
     <string name="your_favs_will_appear_here">Your favorites will appear here. Use the Search tab to find a stop or line.</string>
     <string name="no_results">No results</string>
+    <string name="no_announcements">No announcements</string>
+    <string name="announcements">Announcements (%1$s)</string>
 </resources>

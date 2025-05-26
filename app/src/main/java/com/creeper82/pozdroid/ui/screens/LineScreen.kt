@@ -8,13 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -67,11 +66,8 @@ fun LineHeader(
     var dropDownExpanded by remember { mutableStateOf(false) }
     var selectedDirection by remember { mutableStateOf(directions[0]) }
 
-    Surface(
-        modifier = modifier,
-        tonalElevation = 2.dp,
-        shadowElevation = 2.dp,
-        shape = RoundedCornerShape(8.dp)
+    Card(
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier
