@@ -66,14 +66,19 @@ fun PozDroidApp(
             }
             composable(route = PozDroidScreen.Search.name) {
                 PozDroidSearchScreen(
-                    modifier = modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     onBollardSelected = {},
                     onLineSelected = {}
                 )
             }
             composable(route = PozDroidScreen.Settings.name) {
                 PozDroidSettingsScreen(
-                    modifier = modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            composable(route = PozDroidScreen.Line.name) {
+                PozDroidLineScreen(
+                    modifier = screenModifier
                 )
             }
         }
