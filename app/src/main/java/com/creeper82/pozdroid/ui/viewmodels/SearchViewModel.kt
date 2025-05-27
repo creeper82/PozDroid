@@ -2,8 +2,8 @@ package com.creeper82.pozdroid.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
+import com.creeper82.pozdroid.types.responses.StopsResponse
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,11 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class SearchUiState(
-    val searchResultsLines: List<String> = emptyList(),
-    val searchResultsStops: List<String> = emptyList(),
+    val searchResultsLines: Array<String> = emptyArray(),
+    val searchResultsStops: StopsResponse = emptyArray(),
     val isLoading: Boolean = false,
     val isError: Boolean = false,
-    val query: String = ""
+    val query: String = "",
+    val bottomSheetVisible: Boolean = false,
+    val bottomSheetStopName: String = ""
 )
 
 class SearchViewModel : ViewModel() {
@@ -32,10 +34,27 @@ class SearchViewModel : ViewModel() {
                 queryApi(query)
                 lastSuccessfulQuery = query
             } catch (e: Exception) {
-                setError(true);
+                setError(true)
             } finally {
                 setLoading(false)
             }
+        }
+    }
+
+    fun displayBollardPicker(stopName: String) {
+        _uiState.update { current ->
+            current.copy(
+                bottomSheetStopName = stopName,
+                bottomSheetVisible = true
+            )
+        }
+    }
+
+    fun dismissBollardPicker() {
+        _uiState.update { current ->
+            current.copy(
+                bottomSheetVisible = false
+            )
         }
     }
 
@@ -43,10 +62,11 @@ class SearchViewModel : ViewModel() {
         get() = _uiState.value.query != lastSuccessfulQuery
 
     private suspend fun queryApi(query: String) = coroutineScope {
-        val stopsDeferred = async { PozNodeApiClient.getApi().getStops(query).map { it.name } }
-        val linesDeferred = async { PozNodeApiClient.getApi().getLines(query).toList() }
+        val stopsDeferred = async { PozNodeApiClient.getApi().getStops(query) }
+        val linesDeferred = async { PozNodeApiClient.getApi().getLines(query) }
 
-        val (stops, lines) = awaitAll(stopsDeferred, linesDeferred)
+        val stops = stopsDeferred.await()
+        val lines = linesDeferred.await()
 
         _uiState.update { current ->
             current.copy(

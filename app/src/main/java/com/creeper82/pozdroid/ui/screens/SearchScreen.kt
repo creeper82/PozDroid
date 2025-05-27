@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
@@ -23,6 +25,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,11 +37,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
+import com.creeper82.pozdroid.types.BollardWithDirections
+import com.creeper82.pozdroid.ui.Header
+import com.creeper82.pozdroid.ui.viewmodels.BollardPickerViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchBarViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
@@ -57,17 +65,30 @@ fun PozDroidSearchScreen(
     val loading = uiState.isLoading
     val error = uiState.isError
     val query = uiState.query
+    val bottomSheet = uiState.bottomSheetVisible
+    val bottomSheetStopName = uiState.bottomSheetStopName
 
     LaunchedEffect(query) {
         searchViewModel.search(query)
     }
 
+    if (bottomSheet) {
+        BollardPickerSheet(
+            stopName = bottomSheetStopName,
+            onBollardSelected = {
+                searchViewModel.dismissBollardPicker()
+                onBollardSelected(it)
+            },
+            onDismiss = { searchViewModel.dismissBollardPicker() }
+        )
+    }
+
     Column(modifier = modifier) {
         SearchTextField(
             onSearch = { searchViewModel.updateQuery(it) },
-            onBollardSelected = onBollardSelected,
+            onStopSelected = { searchViewModel.displayBollardPicker(it) },
             onLineSelected = onLineSelected,
-            searchResultsBollards = stops,
+            searchResultsBollards = stops.map { it.name }.toTypedArray(),
             searchResultsLines = lines,
             isLoading = loading,
             isError = error
@@ -79,10 +100,10 @@ fun PozDroidSearchScreen(
 @Composable
 fun SearchTextField(
     onSearch: (newQuery: String) -> Unit,
-    onBollardSelected: (bollardSymbol: String) -> Unit,
+    onStopSelected: (stopName: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit,
-    searchResultsBollards: List<String>,
-    searchResultsLines: List<String>,
+    searchResultsBollards: Array<String>,
+    searchResultsLines: Array<String>,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     isError: Boolean = false,
@@ -149,7 +170,7 @@ fun SearchTextField(
                 if (results.any() && !isError) {
                     results.forEach { result ->
                         SearchResult(mode, result, onClick = {
-                            if (mode == SearchMode.Stops) onBollardSelected(result)
+                            if (mode == SearchMode.Stops) onStopSelected(result)
                             else onLineSelected(result)
                         })
                     }
@@ -175,8 +196,8 @@ fun SearchResult(
         else Icons.Default.Polyline
 
     val iconDesc =
-        if (searchMode == SearchMode.Stops) "Bus stop icon"
-        else "Line icon"
+        if (searchMode == SearchMode.Stops) stringResource(R.string.bus_stop_icon)
+        else stringResource(R.string.line_icon)
 
     SearchResultRow(
         text = text,
@@ -199,7 +220,7 @@ fun NoSearchResults(modifier: Modifier = Modifier) {
 @Composable
 fun SearchFailed(modifier: Modifier = Modifier) {
     Text(
-        text = "Failed to search. Are you connected?",
+        text = stringResource(R.string.failed_to_search_are_you_connected),
         modifier = modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
@@ -258,6 +279,71 @@ fun StopsLinesSegmentedButtons(
                 label = { Text(mode.name) },
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BollardPickerSheet(
+    stopName: String,
+    onBollardSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: BollardPickerViewModel = viewModel()
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(stopName) {
+        viewModel.search(stopName)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        modifier = modifier
+    ) {
+        Header(stopName, Modifier.padding(16.dp))
+
+        if (uiState.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else if (uiState.isError) {
+            Text(stringResource(R.string.failed_to_load_the_bollards_list), Modifier.padding(16.dp))
+        } else if (uiState.bollards.any()) {
+            uiState.bollards.forEach { bollard ->
+                BollardPickerItem(
+                    bollard,
+                    onClick = { onBollardSelected(bollard.symbol) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        } else {
+            NoSearchResults(Modifier.padding(16.dp))
+        }
+    }
+}
+
+@Composable
+fun BollardPickerItem(
+    bollard: BollardWithDirections,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        Text(bollard.symbol)
+        Text(
+            text = bollard.directions.joinToString(",  ") { "${it.lineName}\u00A0=>\u00A0${it.direction}" },
+            style = TextStyle(
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
     }
 }
 

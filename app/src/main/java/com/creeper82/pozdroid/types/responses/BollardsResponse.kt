@@ -1,9 +1,5 @@
 package com.creeper82.pozdroid.types.responses
 
-import com.creeper82.pozdroid.types.Direction
+import com.creeper82.pozdroid.types.BollardWithDirections
 
-data class BollardsResponse(
-    val name: String,
-    val symbol: String,
-    val directions: Array<Direction>
-)
+typealias BollardsResponse = Array<BollardWithDirections>
