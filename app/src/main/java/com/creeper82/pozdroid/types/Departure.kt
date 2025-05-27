@@ -7,5 +7,5 @@ data class Departure(
     val minutes: Int,
     val realTime: Boolean,
     val onStopPoint: Boolean,
-    val vehicle: Vehicle?
+    val vehicle: Vehicle? = null
 )
