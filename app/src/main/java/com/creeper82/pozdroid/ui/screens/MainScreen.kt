@@ -1,6 +1,5 @@
 package com.creeper82.pozdroid.ui.screens
 
-import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,12 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.creeper82.pozdroid.PrefKeys
+import com.creeper82.pozdroid.SharedPrefUtils
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
 import com.creeper82.pozdroid.ui.PozDroidBottomNav
 import com.creeper82.pozdroid.ui.PozDroidHeader
@@ -35,7 +35,18 @@ fun PozDroidApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
-    var showIntro by rememberSaveable { mutableStateOf(true) }
+    val context = LocalContext.current
+    val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
+
+    var showIntro by rememberSaveable {
+        mutableStateOf(
+            sharedPrefs.getBoolean(
+                SharedPrefUtils.SHOW_INTRO,
+                SharedPrefUtils.Defaults.SHOW_INTRO_DEFAULT
+            )
+        )
+    }
+
     val screenModifier = Modifier
         .fillMaxSize()
         .padding(16.dp)
@@ -57,16 +68,17 @@ fun PozDroidApp(
             composable(route = PozDroidScreen.Intro.name) {
                 PozDroidIntroScreen(
                     modifier = screenModifier,
-                    onAddressSelected = { context ->
+                    onAddressSelected = {
                         navController.navigate(PozDroidScreen.Home.name)
                         showIntro = false
 
-                        val prefs: SharedPreferences =
-                            PreferenceManager.getDefaultSharedPreferences(context)
-                        val address = prefs.getString(
-                            PrefKeys.SERVER_ADDRESS,
-                            PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT
+                        val address = sharedPrefs.getString(
+                            SharedPrefUtils.SERVER_ADDRESS,
+                            SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT
                         )!!
+
+                        SharedPrefUtils.setBool(sharedPrefs, SharedPrefUtils.SHOW_INTRO, false)
+
                         PozNodeApiClient.refreshInstance(address)
                     }
                 )

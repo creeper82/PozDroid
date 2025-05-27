@@ -1,6 +1,6 @@
 package com.creeper82.pozdroid.services.impl
 
-import com.creeper82.pozdroid.PrefKeys
+import com.creeper82.pozdroid.SharedPrefUtils
 import com.creeper82.pozdroid.services.abstraction.ApiInterface
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -12,7 +12,7 @@ object PozNodeApiClient {
     private var currentBaseUrl: String? = null
 
     fun getApi(): ApiInterface {
-        if (retrofit == null) refreshInstance(PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT)
+        if (retrofit == null) refreshInstance(SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT)
         return retrofit!!
     }
 

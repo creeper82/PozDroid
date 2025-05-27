@@ -1,6 +1,5 @@
 package com.creeper82.pozdroid.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,24 +17,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.creeper82.pozdroid.PrefKeys
 import com.creeper82.pozdroid.R
+import com.creeper82.pozdroid.SharedPrefUtils
 import me.zhanghai.compose.preference.textFieldPreference
 
 @Composable
 fun PozDroidIntroScreen(
     modifier: Modifier = Modifier,
-    onAddressSelected: (context: Context) -> Unit = {}
+    onAddressSelected: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -68,7 +64,7 @@ fun PozDroidIntroScreen(
                 modifier = Modifier.height(32.dp)
             )
             Button(
-                onClick = { onAddressSelected(context) },
+                onClick = onAddressSelected,
             ) {
                 Text(
                     text = stringResource(R.string.connect_and_continue),
@@ -86,8 +82,8 @@ fun AddressSettings(
 ) {
     LazyColumn(modifier = modifier) {
         textFieldPreference(
-            key = PrefKeys.SERVER_ADDRESS,
-            defaultValue = PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT,
+            key = SharedPrefUtils.SERVER_ADDRESS,
+            defaultValue = SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT,
             title = { Text(stringResource(R.string.server_address)) },
             textToValue = parseUrl,
             summary = { Text(text = it) }

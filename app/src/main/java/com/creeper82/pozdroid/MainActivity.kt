@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
         val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val address =
-            prefs.getString(PrefKeys.SERVER_ADDRESS, PrefKeys.Defaults.SERVER_ADDRESS_DEFAULT)!!
+            prefs.getString(SharedPrefUtils.SERVER_ADDRESS, SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT)!!
 
         PozNodeApiClient.refreshInstance(address)
     }
