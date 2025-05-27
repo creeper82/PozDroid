@@ -22,6 +22,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.creeper82.pozdroid.R
+import com.creeper82.pozdroid.services.impl.PozNodeApiClient
+import com.creeper82.pozdroid.types.responses.StopsResponse
 
 @Composable
 fun PozDroidSearchScreen(
@@ -46,16 +49,21 @@ fun PozDroidSearchScreen(
     onBollardSelected: (bollardSymbol: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit
 ) {
+    var searchResults by remember { mutableStateOf<StopsResponse>(emptyArray()) }
+
+    LaunchedEffect(key1 = true) {
+        searchResults = PozNodeApiClient.getApi().getStops("Rynek")
+    }
+
     Column(modifier = modifier) {
         SearchTextField(
             onSearch = {},
             onBollardSelected = onBollardSelected,
             onLineSelected = onLineSelected,
             onSearchModeChanged = {},
-            searchResults = listOf("Rynek Wildecki", "Rynek Wschodni"),
+            searchResults = searchResults.map { it.name },
         )
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
