@@ -106,7 +106,7 @@ fun PozDroidApp(
             }
             composable(route = "${PozDroidScreen.Line.name}/{id}") {
                 PozDroidLineScreen(
-                    line = it.arguments?.getString("id") ?: "",
+                    lineName = it.arguments?.getString("id") ?: "",
                     modifier = screenModifier
                 )
             }

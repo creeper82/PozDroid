@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.BollardWithDirections
 import com.creeper82.pozdroid.ui.Header
+import com.creeper82.pozdroid.ui.SearchFailed
 import com.creeper82.pozdroid.ui.viewmodels.BollardPickerViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchBarViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
@@ -217,14 +218,7 @@ fun NoSearchResults(modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-fun SearchFailed(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.failed_to_search_are_you_connected),
-        modifier = modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-}
+
 
 @Composable
 fun SearchResultRow(
