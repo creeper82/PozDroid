@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PinDrop
+import androidx.compose.material.icons.filled.Polyline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
+import com.creeper82.pozdroid.types.responses.LinesResponse
 import com.creeper82.pozdroid.types.responses.StopsResponse
+import kotlinx.coroutines.delay
 
 @Composable
 fun PozDroidSearchScreen(
@@ -49,19 +52,27 @@ fun PozDroidSearchScreen(
     onBollardSelected: (bollardSymbol: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit
 ) {
-    var searchResults by remember { mutableStateOf<StopsResponse>(emptyArray()) }
+    var searchResultsLines by remember { mutableStateOf<LinesResponse>(emptyArray()) }
+    var searchResultsBollards by remember { mutableStateOf<StopsResponse>(emptyArray()) }
 
-    LaunchedEffect(key1 = true) {
-        searchResults = PozNodeApiClient.getApi().getStops("Rynek")
+    var query by remember { mutableStateOf("") }
+
+    suspend fun updateData() {
+        searchResultsBollards = PozNodeApiClient.getApi().getStops(query)
+        searchResultsLines = PozNodeApiClient.getApi().getLines(query)
+    }
+
+    LaunchedEffect(query) {
+        updateData()
     }
 
     Column(modifier = modifier) {
         SearchTextField(
-            onSearch = {},
+            onSearch = { q -> query = q },
             onBollardSelected = onBollardSelected,
             onLineSelected = onLineSelected,
-            onSearchModeChanged = {},
-            searchResults = searchResults.map { it.name },
+            searchResultsBollards = searchResultsBollards.map { it.name },
+            searchResultsLines = searchResultsLines.toList()
         )
     }
 }
@@ -73,11 +84,24 @@ fun SearchTextField(
     onSearch: (newQuery: String) -> Unit,
     onBollardSelected: (bollardSymbol: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit,
-    onSearchModeChanged: (newMode: SearchMode) -> Unit,
-    searchResults: List<String>
+    searchResultsBollards: List<String>,
+    searchResultsLines: List<String>
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
+
+    var searchMode by rememberSaveable { mutableStateOf(SearchMode.Stops) }
+
+    val results =
+        if (searchMode == SearchMode.Stops) searchResultsBollards
+        else searchResultsLines
+
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            delay(800)
+            onSearch(searchQuery)
+        }
+    }
 
     Box(
         modifier
@@ -93,7 +117,6 @@ fun SearchTextField(
                     query = searchQuery,
                     onQueryChange = { q ->
                         searchQuery = q
-                        onSearch(q)
                     },
                     onSearch = {},
                     placeholder = { Text("Search") },
@@ -109,21 +132,19 @@ fun SearchTextField(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onSelection = onSearchModeChanged
+                onSelection = { searchMode = it }
             )
             Column(
                 Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (searchResults.any()) {
-                    searchResults.forEach { result ->
-                        SearchResultRow(
-                            text = result,
-                            icon = Icons.Default.PinDrop,
-                            iconDescription = "Bus stop icon",
-                            onClick = { onBollardSelected(result) }
-                        )
+                if (results.any()) {
+                    results.forEach { result ->
+                        SearchResult(searchMode, result, onClick = {
+                            if (searchMode == SearchMode.Stops) onBollardSelected(result)
+                            else onLineSelected(result)
+                        })
                     }
                 } else {
                     NoSearchResults()
@@ -131,6 +152,29 @@ fun SearchTextField(
             }
         }
     }
+}
+
+@Composable
+fun SearchResult(
+    searchMode: SearchMode,
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    val iconRes =
+        if (searchMode == SearchMode.Stops) Icons.Default.PinDrop
+        else Icons.Default.Polyline
+
+    val iconDesc =
+        if (searchMode == SearchMode.Stops) "Bus stop icon"
+        else "Line icon"
+
+    SearchResultRow(
+        text = text,
+        icon = iconRes,
+        iconDescription = iconDesc,
+        onClick = onClick
+    )
 }
 
 @Composable
