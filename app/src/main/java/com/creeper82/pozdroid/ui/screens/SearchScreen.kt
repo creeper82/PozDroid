@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Polyline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
@@ -24,6 +25,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,30 +42,29 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
-import com.creeper82.pozdroid.services.impl.PozNodeApiClient
-import com.creeper82.pozdroid.types.responses.LinesResponse
-import com.creeper82.pozdroid.types.responses.StopsResponse
+import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun PozDroidSearchScreen(
     modifier: Modifier = Modifier,
     onBollardSelected: (bollardSymbol: String) -> Unit,
-    onLineSelected: (lineName: String) -> Unit
+    onLineSelected: (lineName: String) -> Unit,
+    searchViewModel: SearchViewModel = viewModel()
 ) {
-    var searchResultsLines by remember { mutableStateOf<LinesResponse>(emptyArray()) }
-    var searchResultsBollards by remember { mutableStateOf<StopsResponse>(emptyArray()) }
+    val uiState by searchViewModel.uiState.collectAsState()
+
+    val lines = uiState.searchResultsLines
+    val stops = uiState.searchResultsStops
+    val loading = uiState.isLoading
+    val error = uiState.isError
 
     var query by remember { mutableStateOf("") }
 
-    suspend fun updateData() {
-        searchResultsBollards = PozNodeApiClient.getApi().getStops(query)
-        searchResultsLines = PozNodeApiClient.getApi().getLines(query)
-    }
-
     LaunchedEffect(query) {
-        updateData()
+        searchViewModel.search(query)
     }
 
     Column(modifier = modifier) {
@@ -71,8 +72,10 @@ fun PozDroidSearchScreen(
             onSearch = { q -> query = q },
             onBollardSelected = onBollardSelected,
             onLineSelected = onLineSelected,
-            searchResultsBollards = searchResultsBollards.map { it.name },
-            searchResultsLines = searchResultsLines.toList()
+            searchResultsBollards = stops,
+            searchResultsLines = lines,
+            isLoading = loading,
+            isError = error
         )
     }
 }
@@ -80,12 +83,14 @@ fun PozDroidSearchScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTextField(
-    modifier: Modifier = Modifier,
     onSearch: (newQuery: String) -> Unit,
     onBollardSelected: (bollardSymbol: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit,
     searchResultsBollards: List<String>,
-    searchResultsLines: List<String>
+    searchResultsLines: List<String>,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    isError: Boolean = false
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -134,19 +139,26 @@ fun SearchTextField(
                     .padding(16.dp),
                 onSelection = { searchMode = it }
             )
+            if (isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             Column(
                 Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (results.any()) {
+                if (results.any() && !isError) {
                     results.forEach { result ->
                         SearchResult(searchMode, result, onClick = {
                             if (searchMode == SearchMode.Stops) onBollardSelected(result)
                             else onLineSelected(result)
                         })
                     }
-                } else {
+                } else if (isError) {
+                    SearchFailed()
+                } else if (!isLoading) {
                     NoSearchResults()
                 }
             }
@@ -173,7 +185,8 @@ fun SearchResult(
         text = text,
         icon = iconRes,
         iconDescription = iconDesc,
-        onClick = onClick
+        onClick = onClick,
+        modifier = modifier
     )
 }
 
@@ -181,6 +194,15 @@ fun SearchResult(
 fun NoSearchResults(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.no_results),
+        modifier = modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun SearchFailed(modifier: Modifier = Modifier) {
+    Text(
+        text = "Failed to search. Are you connected?",
         modifier = modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
