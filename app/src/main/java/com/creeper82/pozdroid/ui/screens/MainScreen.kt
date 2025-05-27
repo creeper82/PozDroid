@@ -88,17 +88,15 @@ fun PozDroidApp(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            composable(route = PozDroidScreen.Line.name) {
+            composable(route = "${PozDroidScreen.Line.name}/{id}") {
                 PozDroidLineScreen(
+                    line = it.arguments?.getString("id") ?: "",
                     modifier = screenModifier
                 )
             }
-            composable(route = PozDroidScreen.Departures.name) {
+            composable(route = "${PozDroidScreen.Departures.name}/{id}") {
                 PozDroidDeparturesScreen(
-                    bollardName = "Rynek Wildecki",
-                    bollardSymbol = "RYWI74",
-                    announcements = emptyArray(),
-                    departures = emptyArray(),
+                    bollardSymbol = it.arguments?.getString("id") ?: "",
                     modifier = screenModifier
                 )
             }

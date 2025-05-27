@@ -31,10 +31,13 @@ import com.creeper82.pozdroid.types.Bollard
 import com.creeper82.pozdroid.types.DirectionWithStops
 
 @Composable
-fun PozDroidLineScreen(modifier: Modifier = Modifier) {
+fun PozDroidLineScreen(
+    line: String,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         LineHeader(
-            lineName = "2",
+            lineName = line,
             directions = arrayOf(
                 DirectionWithStops(
                     direction = "Dębiec PKM",
@@ -120,6 +123,7 @@ fun LineHeader(
 @Composable
 private fun PozDroidLineScreenPreview() {
     PozDroidLineScreen(
+        line = "2",
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
