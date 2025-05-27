@@ -39,24 +39,20 @@ import androidx.compose.ui.unit.sp
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.Announcement
 import com.creeper82.pozdroid.types.Departure
-import com.creeper82.pozdroid.types.Vehicle
 
 @Composable
 fun PozDroidDeparturesScreen(
-    bollardName: String,
     bollardSymbol: String,
-    announcements: Array<Announcement>,
-    departures: Array<Departure>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        StopHeader(bollardName, bollardSymbol, Modifier.fillMaxWidth())
+        StopHeader("Loading...", bollardSymbol, Modifier.fillMaxWidth())
 
         Spacer(Modifier.height(16.dp))
 
         AnnouncementsAndDeparturesCard(
-            announcements = announcements,
-            departures = departures,
+            announcements = emptyArray(),
+            departures = emptyArray(),
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -92,7 +88,11 @@ fun StopHeader(
 fun ExpandableAnnouncements(announcements: Array<Announcement>, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.clickable(onClick = {expanded = !expanded}).padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = { expanded = !expanded })
+            .padding(16.dp)
+    ) {
         if (announcements.any()) {
             Row {
                 Text(
@@ -213,76 +213,7 @@ fun AnnouncementsAndDeparturesCard(
 @Composable
 private fun PozDroidDeparturesScreenPreview() {
     PozDroidDeparturesScreen(
-        bollardName = "Rynek Wildecki",
         bollardSymbol = "RYWI74",
-        announcements = arrayOf(
-            Announcement(
-                content = "Uwaga: Przykladowe ogloszenie!!!",
-                startDate = "26.05.2025",
-                endDate = "26.05.2025"
-            ),
-            Announcement(
-                content = "W dniu x zgodnie z y zostanie zamknięta trasa z dla linii należących coś tam",
-                startDate = "01.01.2026",
-                endDate = "02.01.2026"
-            )
-        ),
-        departures = arrayOf(
-            Departure(
-                line = "2",
-                direction = "Ogrody",
-                departure = "09:14",
-                minutes = 3,
-                realTime = true,
-                onStopPoint = false,
-                vehicle = Vehicle(
-                    id = "511",
-                    airConditioned = null,
-                    bike = null,
-                    chargers = null,
-                    lowFloor = null,
-                    lowEntrance = null,
-                    ramp = null,
-                    ticketMachine = null
-                )
-            ),
-            Departure(
-                line = "8",
-                direction = "Miłostowo",
-                departure = "09:15",
-                minutes = 4,
-                realTime = true,
-                onStopPoint = false,
-                vehicle = Vehicle(
-                    id = "513",
-                    airConditioned = null,
-                    bike = null,
-                    chargers = null,
-                    lowFloor = null,
-                    lowEntrance = null,
-                    ramp = null,
-                    ticketMachine = null
-                )
-            ),
-            Departure(
-                line = "PKM3",
-                direction = "Os. Wichrowe Wzgórze Dodatkowe",
-                departure = "09:16",
-                minutes = 5,
-                realTime = false,
-                onStopPoint = false,
-                vehicle = Vehicle(
-                    id = "1023",
-                    airConditioned = null,
-                    bike = null,
-                    chargers = null,
-                    lowFloor = null,
-                    lowEntrance = null,
-                    ramp = null,
-                    ticketMachine = null
-                )
-            ),
-        ),
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)

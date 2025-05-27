@@ -14,4 +14,8 @@
     <string name="refresh_departures">Refresh departures</string>
     <string name="you_are_using_pozdroid_v1_0">You are using PozDroid v1.0</string>
     <string name="every_seconds">every %1$s seconds</string>
+    <string name="failed_to_load_the_bollards_list">Failed to load the bollards list.</string>
+    <string name="failed_to_search_are_you_connected">Failed to search. Are you connected?</string>
+    <string name="bus_stop_icon">Bus stop icon</string>
+    <string name="line_icon">Line icon</string>
 </resources>

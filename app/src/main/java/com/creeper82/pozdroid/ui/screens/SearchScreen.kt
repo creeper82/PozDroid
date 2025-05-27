@@ -11,9 +11,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PinDrop
+import androidx.compose.material.icons.filled.Polyline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SegmentedButton
@@ -21,14 +25,11 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -36,32 +37,61 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
-import com.creeper82.pozdroid.services.impl.PozNodeApiClient
-import com.creeper82.pozdroid.types.responses.StopsResponse
+import com.creeper82.pozdroid.types.BollardWithDirections
+import com.creeper82.pozdroid.ui.Header
+import com.creeper82.pozdroid.ui.viewmodels.BollardPickerViewModel
+import com.creeper82.pozdroid.ui.viewmodels.SearchBarViewModel
+import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun PozDroidSearchScreen(
     modifier: Modifier = Modifier,
     onBollardSelected: (bollardSymbol: String) -> Unit,
-    onLineSelected: (lineName: String) -> Unit
+    onLineSelected: (lineName: String) -> Unit,
+    searchViewModel: SearchViewModel = viewModel()
 ) {
-    var searchResults by remember { mutableStateOf<StopsResponse>(emptyArray()) }
+    val uiState by searchViewModel.uiState.collectAsState()
 
-    LaunchedEffect(key1 = true) {
-        searchResults = PozNodeApiClient.getApi().getStops("Rynek")
+    val lines = uiState.searchResultsLines
+    val stops = uiState.searchResultsStops
+    val loading = uiState.isLoading
+    val error = uiState.isError
+    val query = uiState.query
+    val bottomSheet = uiState.bottomSheetVisible
+    val bottomSheetStopName = uiState.bottomSheetStopName
+
+    LaunchedEffect(query) {
+        searchViewModel.search(query)
+    }
+
+    if (bottomSheet) {
+        BollardPickerSheet(
+            stopName = bottomSheetStopName,
+            onBollardSelected = {
+                searchViewModel.dismissBollardPicker()
+                onBollardSelected(it)
+            },
+            onDismiss = { searchViewModel.dismissBollardPicker() }
+        )
     }
 
     Column(modifier = modifier) {
         SearchTextField(
-            onSearch = {},
-            onBollardSelected = onBollardSelected,
+            onSearch = { searchViewModel.updateQuery(it) },
+            onStopSelected = { searchViewModel.displayBollardPicker(it) },
             onLineSelected = onLineSelected,
-            onSearchModeChanged = {},
-            searchResults = searchResults.map { it.name },
+            searchResultsBollards = stops.map { it.name }.toTypedArray(),
+            searchResultsLines = lines,
+            isLoading = loading,
+            isError = error
         )
     }
 }
@@ -69,15 +99,33 @@ fun PozDroidSearchScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTextField(
-    modifier: Modifier = Modifier,
     onSearch: (newQuery: String) -> Unit,
-    onBollardSelected: (bollardSymbol: String) -> Unit,
+    onStopSelected: (stopName: String) -> Unit,
     onLineSelected: (lineName: String) -> Unit,
-    onSearchModeChanged: (newMode: SearchMode) -> Unit,
-    searchResults: List<String>
+    searchResultsBollards: Array<String>,
+    searchResultsLines: Array<String>,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    isError: Boolean = false,
+    viewModel: SearchBarViewModel = viewModel()
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    val searchQuery = uiState.query
+    val expanded = uiState.expanded
+
+    val mode = uiState.mode
+
+    val results =
+        if (mode == SearchMode.Stops) searchResultsBollards
+        else searchResultsLines
+
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            delay(800)
+            onSearch(searchQuery)
+        }
+    }
 
     Box(
         modifier
@@ -91,41 +139,44 @@ fun SearchTextField(
             inputField = {
                 SearchBarDefaults.InputField(
                     query = searchQuery,
-                    onQueryChange = { q ->
-                        searchQuery = q
-                        onSearch(q)
-                    },
+                    onQueryChange = { viewModel.updateQuery(it) },
                     onSearch = {},
                     placeholder = { Text("Search") },
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = { viewModel.updateExpanded(it) },
                     leadingIcon = { Icon(Icons.Filled.Search, "Search icon") }
                 )
             },
             expanded = expanded,
-            onExpandedChange = { expanded = it },
+            onExpandedChange = { viewModel.updateExpanded(it) },
         ) {
             StopsLinesSegmentedButtons(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onSelection = onSearchModeChanged
+                selectedMode = mode,
+                onSelection = { viewModel.updateSearchMode(it) }
             )
+            if (isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             Column(
                 Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (searchResults.any()) {
-                    searchResults.forEach { result ->
-                        SearchResultRow(
-                            text = result,
-                            icon = Icons.Default.PinDrop,
-                            iconDescription = "Bus stop icon",
-                            onClick = { onBollardSelected(result) }
-                        )
+                if (results.any() && !isError) {
+                    results.forEach { result ->
+                        SearchResult(mode, result, onClick = {
+                            if (mode == SearchMode.Stops) onStopSelected(result)
+                            else onLineSelected(result)
+                        })
                     }
-                } else {
+                } else if (isError) {
+                    SearchFailed()
+                } else if (!isLoading) {
                     NoSearchResults()
                 }
             }
@@ -134,9 +185,42 @@ fun SearchTextField(
 }
 
 @Composable
+fun SearchResult(
+    searchMode: SearchMode,
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
+    val iconRes =
+        if (searchMode == SearchMode.Stops) Icons.Default.PinDrop
+        else Icons.Default.Polyline
+
+    val iconDesc =
+        if (searchMode == SearchMode.Stops) stringResource(R.string.bus_stop_icon)
+        else stringResource(R.string.line_icon)
+
+    SearchResultRow(
+        text = text,
+        icon = iconRes,
+        iconDescription = iconDesc,
+        onClick = onClick,
+        modifier = modifier
+    )
+}
+
+@Composable
 fun NoSearchResults(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.no_results),
+        modifier = modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun SearchFailed(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.failed_to_search_are_you_connected),
         modifier = modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
@@ -175,9 +259,9 @@ enum class SearchMode {
 @Composable
 fun StopsLinesSegmentedButtons(
     modifier: Modifier = Modifier,
+    selectedMode: SearchMode,
     onSelection: (selection: SearchMode) -> Unit
 ) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
     val searchModes = SearchMode.entries
 
     SingleChoiceSegmentedButtonRow(modifier = modifier) {
@@ -189,13 +273,77 @@ fun StopsLinesSegmentedButtons(
                     baseShape = ShapeDefaults.Small
                 ),
                 onClick = {
-                    selectedIndex = index
-                    onSelection(searchModes[selectedIndex])
+                    onSelection(mode)
                 },
-                selected = index == selectedIndex,
+                selected = selectedMode == mode,
                 label = { Text(mode.name) },
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BollardPickerSheet(
+    stopName: String,
+    onBollardSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: BollardPickerViewModel = viewModel()
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(stopName) {
+        viewModel.search(stopName)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        modifier = modifier
+    ) {
+        Header(stopName, Modifier.padding(16.dp))
+
+        if (uiState.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else if (uiState.isError) {
+            Text(stringResource(R.string.failed_to_load_the_bollards_list), Modifier.padding(16.dp))
+        } else if (uiState.bollards.any()) {
+            uiState.bollards.forEach { bollard ->
+                BollardPickerItem(
+                    bollard,
+                    onClick = { onBollardSelected(bollard.symbol) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        } else {
+            NoSearchResults(Modifier.padding(16.dp))
+        }
+    }
+}
+
+@Composable
+fun BollardPickerItem(
+    bollard: BollardWithDirections,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        Text(bollard.symbol)
+        Text(
+            text = bollard.directions.joinToString(",  ") { "${it.lineName}\u00A0=>\u00A0${it.direction}" },
+            style = TextStyle(
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
     }
 }
 
