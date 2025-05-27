@@ -79,8 +79,12 @@ fun PozDroidApp(
             composable(route = PozDroidScreen.Search.name) {
                 PozDroidSearchScreen(
                     modifier = Modifier.fillMaxSize(),
-                    onBollardSelected = {},
-                    onLineSelected = {}
+                    onBollardSelected = {
+                        navController.navigate("${PozDroidScreen.Departures.name}/$it")
+                    },
+                    onLineSelected = {
+                        navController.navigate("${PozDroidScreen.Line.name}/$it")
+                    }
                 )
             }
             composable(route = PozDroidScreen.Settings.name) {

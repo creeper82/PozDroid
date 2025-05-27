@@ -27,11 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
+import com.creeper82.pozdroid.ui.viewmodels.SearchBarViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
 import kotlinx.coroutines.delay
 
@@ -60,8 +56,7 @@ fun PozDroidSearchScreen(
     val stops = uiState.searchResultsStops
     val loading = uiState.isLoading
     val error = uiState.isError
-
-    var query by remember { mutableStateOf("") }
+    val query = uiState.query
 
     LaunchedEffect(query) {
         searchViewModel.search(query)
@@ -69,7 +64,7 @@ fun PozDroidSearchScreen(
 
     Column(modifier = modifier) {
         SearchTextField(
-            onSearch = { q -> query = q },
+            onSearch = { searchViewModel.updateQuery(it) },
             onBollardSelected = onBollardSelected,
             onLineSelected = onLineSelected,
             searchResultsBollards = stops,
@@ -90,15 +85,18 @@ fun SearchTextField(
     searchResultsLines: List<String>,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
-    isError: Boolean = false
+    isError: Boolean = false,
+    viewModel: SearchBarViewModel = viewModel()
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
 
-    var searchMode by rememberSaveable { mutableStateOf(SearchMode.Stops) }
+    val searchQuery = uiState.query
+    val expanded = uiState.expanded
+
+    val mode = uiState.mode
 
     val results =
-        if (searchMode == SearchMode.Stops) searchResultsBollards
+        if (mode == SearchMode.Stops) searchResultsBollards
         else searchResultsLines
 
     LaunchedEffect(searchQuery) {
@@ -120,24 +118,23 @@ fun SearchTextField(
             inputField = {
                 SearchBarDefaults.InputField(
                     query = searchQuery,
-                    onQueryChange = { q ->
-                        searchQuery = q
-                    },
+                    onQueryChange = { viewModel.updateQuery(it) },
                     onSearch = {},
                     placeholder = { Text("Search") },
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = { viewModel.updateExpanded(it) },
                     leadingIcon = { Icon(Icons.Filled.Search, "Search icon") }
                 )
             },
             expanded = expanded,
-            onExpandedChange = { expanded = it },
+            onExpandedChange = { viewModel.updateExpanded(it) },
         ) {
             StopsLinesSegmentedButtons(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onSelection = { searchMode = it }
+                selectedMode = mode,
+                onSelection = { viewModel.updateSearchMode(it) }
             )
             if (isLoading) {
                 LinearProgressIndicator(
@@ -151,8 +148,8 @@ fun SearchTextField(
             ) {
                 if (results.any() && !isError) {
                     results.forEach { result ->
-                        SearchResult(searchMode, result, onClick = {
-                            if (searchMode == SearchMode.Stops) onBollardSelected(result)
+                        SearchResult(mode, result, onClick = {
+                            if (mode == SearchMode.Stops) onBollardSelected(result)
                             else onLineSelected(result)
                         })
                     }
@@ -241,9 +238,9 @@ enum class SearchMode {
 @Composable
 fun StopsLinesSegmentedButtons(
     modifier: Modifier = Modifier,
+    selectedMode: SearchMode,
     onSelection: (selection: SearchMode) -> Unit
 ) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
     val searchModes = SearchMode.entries
 
     SingleChoiceSegmentedButtonRow(modifier = modifier) {
@@ -255,10 +252,9 @@ fun StopsLinesSegmentedButtons(
                     baseShape = ShapeDefaults.Small
                 ),
                 onClick = {
-                    selectedIndex = index
-                    onSelection(searchModes[selectedIndex])
+                    onSelection(mode)
                 },
-                selected = index == selectedIndex,
+                selected = selectedMode == mode,
                 label = { Text(mode.name) },
             )
         }

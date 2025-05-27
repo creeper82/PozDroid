@@ -14,24 +14,33 @@ data class SearchUiState(
     val searchResultsLines: List<String> = emptyList(),
     val searchResultsStops: List<String> = emptyList(),
     val isLoading: Boolean = false,
-    val isError: Boolean = false
+    val isError: Boolean = false,
+    val query: String = ""
 )
 
 class SearchViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    suspend fun search(query: String) {
-        setError(false); setLoading(true)
+    private var lastSuccessfulQuery: String = "_NONE_"
 
-        try {
-            queryApi(query)
-        } catch (e: Exception) {
-            setError(true);
-        } finally {
-            setLoading(false)
+    suspend fun search(query: String) {
+        if (shouldSearch) {
+            setError(false); setLoading(true)
+
+            try {
+                queryApi(query)
+                lastSuccessfulQuery = query
+            } catch (e: Exception) {
+                setError(true);
+            } finally {
+                setLoading(false)
+            }
         }
     }
+
+    val shouldSearch
+        get() = _uiState.value.query != lastSuccessfulQuery
 
     private suspend fun queryApi(query: String) = coroutineScope {
         val stopsDeferred = async { PozNodeApiClient.getApi().getStops(query).map { it.name } }
@@ -44,6 +53,12 @@ class SearchViewModel : ViewModel() {
                 searchResultsStops = stops,
                 searchResultsLines = lines
             )
+        }
+    }
+
+    fun updateQuery(query: String) {
+        _uiState.update { current ->
+            current.copy(query = query)
         }
     }
 
