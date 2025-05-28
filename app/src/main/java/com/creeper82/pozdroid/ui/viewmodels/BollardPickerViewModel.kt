@@ -18,10 +18,11 @@ class BollardPickerViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     suspend fun search(stopName: String) {
-        setError(false); setLoading(true)
+        setLoading(true)
 
         try {
             val bollards = PozNodeApiClient.getApi().getBollards(stopName)
+            setError(false)
             setBollards(bollards)
         } catch (e: Exception) {
             setError(true)

@@ -18,10 +18,11 @@ class LineViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     suspend fun fetchData(lineName: String) {
-        setError(false); setLoading(true)
+        setLoading(true)
 
         try {
             val response = PozNodeApiClient.getApi().getLine(lineName)
+            setError(false)
             setResponse(response)
         } catch (e: Exception) {
             setError(true)

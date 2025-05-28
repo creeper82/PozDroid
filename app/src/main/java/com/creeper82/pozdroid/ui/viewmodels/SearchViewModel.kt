@@ -28,10 +28,11 @@ class SearchViewModel : ViewModel() {
 
     suspend fun search(query: String) {
         if (shouldSearch) {
-            setError(false); setLoading(true)
+            setLoading(true)
 
             try {
                 queryApi(query)
+                setError(false)
                 lastSuccessfulQuery = query
             } catch (e: Exception) {
                 setError(true)
