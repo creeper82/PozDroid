@@ -11,11 +11,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.SharedPrefUtils
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
 import com.creeper82.pozdroid.ui.PozDroidBottomNav
@@ -38,6 +41,10 @@ fun PozDroidApp(
     val context = LocalContext.current
     val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val canGoBack = navController.previousBackStackEntry != null
+
     var showIntro by rememberSaveable {
         mutableStateOf(
             sharedPrefs.getBoolean(
@@ -53,7 +60,11 @@ fun PozDroidApp(
 
     Scaffold(
         topBar = {
-            PozDroidHeader()
+            PozDroidHeader(
+                title = currentRoute?.substringBefore("/") ?: stringResource(R.string.app_name),
+                canGoBack = canGoBack,
+                onBack = { navController.popBackStack() }
+            )
         },
         modifier = modifier,
         bottomBar = { if (!showIntro) PozDroidBottomNav(navController) }

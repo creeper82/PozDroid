@@ -19,4 +19,5 @@
     <string name="bus_stop_icon">Bus stop icon</string>
     <string name="line_icon">Line icon</string>
     <string name="expand_directions_arrow">Expand directions arrow</string>
+    <string name="go_back">Go back</string>
 </resources>
