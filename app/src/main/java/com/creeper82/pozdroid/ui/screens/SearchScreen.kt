@@ -3,7 +3,6 @@ package com.creeper82.pozdroid.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -46,6 +44,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.BollardWithDirections
 import com.creeper82.pozdroid.ui.Header
+import com.creeper82.pozdroid.ui.ResultRow
+import com.creeper82.pozdroid.ui.SearchFailed
 import com.creeper82.pozdroid.ui.viewmodels.BollardPickerViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchBarViewModel
 import com.creeper82.pozdroid.ui.viewmodels.SearchViewModel
@@ -199,7 +199,7 @@ fun SearchResult(
         if (searchMode == SearchMode.Stops) stringResource(R.string.bus_stop_icon)
         else stringResource(R.string.line_icon)
 
-    SearchResultRow(
+    ResultRow(
         text = text,
         icon = iconRes,
         iconDescription = iconDesc,
@@ -215,40 +215,6 @@ fun NoSearchResults(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
-}
-
-@Composable
-fun SearchFailed(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.failed_to_search_are_you_connected),
-        modifier = modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-fun SearchResultRow(
-    text: String,
-    modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    iconDescription: String = "",
-    onClick: () -> Unit = {}
-) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp)
-    ) {
-        if (icon != null) {
-            Icon(
-                icon,
-                iconDescription,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        }
-        Text(text)
-    }
 }
 
 enum class SearchMode {
