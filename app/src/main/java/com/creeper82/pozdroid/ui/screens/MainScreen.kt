@@ -118,7 +118,10 @@ fun PozDroidApp(
             composable(route = "${PozDroidScreen.Line.name}/{id}") {
                 PozDroidLineScreen(
                     lineName = it.arguments?.getString("id") ?: "",
-                    modifier = screenModifier
+                    modifier = screenModifier,
+                    onBollardSelected = {
+                        navController.navigate("${PozDroidScreen.Departures.name}/$it")
+                    }
                 )
             }
             composable(route = "${PozDroidScreen.Departures.name}/{id}") {

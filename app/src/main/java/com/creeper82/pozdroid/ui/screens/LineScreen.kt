@@ -4,12 +4,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,13 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.Bollard
 import com.creeper82.pozdroid.types.DirectionWithStops
+import com.creeper82.pozdroid.ui.ResultRow
 import com.creeper82.pozdroid.ui.SearchFailed
 import com.creeper82.pozdroid.ui.viewmodels.LineViewModel
 
@@ -43,6 +46,7 @@ import com.creeper82.pozdroid.ui.viewmodels.LineViewModel
 fun PozDroidLineScreen(
     lineName: String,
     modifier: Modifier = Modifier,
+    onBollardSelected: (symbol: String) -> Unit,
     viewModel: LineViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -64,10 +68,39 @@ fun PozDroidLineScreen(
                 onDirectionSelected = { displayStops = it.bollards },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(16.dp))
             displayStops?.let { stops ->
-                stops.forEach { stop ->
-                    Text(stop.name)
-                }
+                StopList(
+                    stops,
+                    modifier = Modifier.fillMaxWidth(),
+                    onBollardSelected = onBollardSelected
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StopList(
+    stops: Array<Bollard>,
+    modifier: Modifier = Modifier,
+    onBollardSelected: (symbol: String) -> Unit = {}
+) {
+    Card(
+        modifier = modifier
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+        ) {
+            stops.forEach { stop ->
+                ResultRow(
+                    text = stop.name,
+                    icon = Icons.Default.DirectionsBus,
+                    iconDescription = stringResource(R.string.bus_stop_icon),
+                    onClick = { onBollardSelected(stop.symbol) }
+                )
             }
         }
     }
@@ -131,15 +164,4 @@ fun LineHeader(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PozDroidLineScreenPreview() {
-    PozDroidLineScreen(
-        lineName = "2",
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    )
 }
