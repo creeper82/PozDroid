@@ -3,6 +3,7 @@ package com.creeper82.pozdroid
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,8 +26,20 @@ class MainActivity : ComponentActivity() {
 
         val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val address =
-            prefs.getString(SharedPrefUtils.SERVER_ADDRESS, SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT)!!
+            prefs.getString(
+                SharedPrefUtils.SERVER_ADDRESS,
+                SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT
+            )!!
 
-        PozNodeApiClient.refreshInstance(address)
+        try {
+            PozNodeApiClient.refreshInstance(address)
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                "URL failure. Verify that the server URL is correct and valid!",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
     }
 }
