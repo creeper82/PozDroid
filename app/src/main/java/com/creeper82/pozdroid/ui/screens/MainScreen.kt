@@ -83,14 +83,8 @@ fun PozDroidApp(
                         navController.navigate(PozDroidScreen.Home.name)
                         showIntro = false
 
-                        val address = sharedPrefs.getString(
-                            SharedPrefUtils.SERVER_ADDRESS,
-                            SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT
-                        )!!
-
                         SharedPrefUtils.setBool(sharedPrefs, SharedPrefUtils.SHOW_INTRO, false)
-
-                        PozNodeApiClient.refreshInstance(address)
+                        PozNodeApiClient.reloadBasedOnPrefs(context)
                     }
                 )
             }
