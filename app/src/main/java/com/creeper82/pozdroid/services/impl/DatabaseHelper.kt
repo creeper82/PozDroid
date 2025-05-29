@@ -32,7 +32,11 @@ object DatabaseHelper {
         getDao().deleteFavorite(favorite)
     }
 
-    suspend fun deleteFavoriteByStopId(stopId: String) {
+    suspend fun deleteFavoriteByBollardSymbol(stopId: String) {
         getDao().deleteByStopId(stopId)
+    }
+
+    suspend fun isFavorite(bollardSymbol: String): Boolean {
+        return getDao().isFavorite(bollardSymbol)
     }
 }

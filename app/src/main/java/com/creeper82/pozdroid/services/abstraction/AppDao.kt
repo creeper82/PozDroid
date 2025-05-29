@@ -22,4 +22,7 @@ interface AppDao {
 
     @Query("DELETE FROM favorites WHERE bollardSymbol = :bollardSymbol")
     suspend fun deleteByStopId(bollardSymbol: String)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE bollardSymbol = :bollardSymbol)")
+    suspend fun isFavorite(bollardSymbol: String): Boolean
 }

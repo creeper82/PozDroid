@@ -3,6 +3,7 @@ package com.creeper82.pozdroid.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Text
@@ -31,7 +32,7 @@ fun PozDroidHomeScreen(
         if (favorites.any()) {
             Favorites(favorites, onClick = { onFavoriteSelected(it.bollardSymbol) })
         } else {
-            Welcome()
+            Welcome(Modifier.padding(16.dp))
         }
     }
 }
@@ -51,10 +52,10 @@ fun Favorites(
     onClick: (fav: Favorite) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Header("Favorites", modifier = modifier)
-
-    favorites.forEach { f ->
-        Favorite(f, onClick = { onClick(f) })
+    Column(modifier = modifier) {
+        favorites.forEach { f ->
+            Favorite(f, onClick = { onClick(f) })
+        }
     }
 }
 

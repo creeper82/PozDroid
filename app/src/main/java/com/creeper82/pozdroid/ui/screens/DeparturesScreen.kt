@@ -20,13 +20,17 @@ import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.PedalBike
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -73,14 +77,20 @@ fun PozDroidDeparturesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val loading = uiState.isLoading
     val error = uiState.isError
+    val isFavorite = uiState.isFavorite
     val response = uiState.departures
     val stopName = response?.bollardName
 
     val reloadScope = rememberCoroutineScope()
+    val toggleFavScope = rememberCoroutineScope()
     val reloadSemaphore = remember { Semaphore(1) }
 
     suspend fun refresh() = reloadSemaphore.withPermit {
         viewModel.fetchData(bollardSymbol)
+    }
+
+    LaunchedEffect(bollardSymbol) {
+        viewModel.fetchFavoriteStatus(bollardSymbol)
     }
 
     LaunchedEffect(bollardSymbol, refreshFrequencySeconds) {
@@ -92,7 +102,27 @@ fun PozDroidDeparturesScreen(
     }
 
     Column(modifier = modifier) {
-        StopHeader(stopName ?: "Loading", bollardSymbol, Modifier.fillMaxWidth())
+        StopHeader(
+            name = stopName ?: stringResource(R.string.loading),
+            symbol = bollardSymbol,
+            displayFavButton = response != null,
+            isFavorite = isFavorite,
+            onFavoriteClick = {
+                toggleFavScope.launch {
+                    viewModel.toggleFavorite(bollardSymbol, stopName ?: "Name unavailable")
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (error and isFavorite) {
+            Spacer(Modifier.height(16.dp))
+            FavoriteRemovalCard(onRemoveClick = {
+                toggleFavScope.launch {
+                    viewModel.deleteFavorite(bollardSymbol)
+                }
+            })
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -111,25 +141,58 @@ fun PozDroidDeparturesScreen(
 fun StopHeader(
     name: String,
     symbol: String,
+    displayFavButton: Boolean,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                name, style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    name, style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
                 )
-            )
-            Text(
-                symbol, style = TextStyle(
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Text(
+                    symbol, style = TextStyle(
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
-            )
+            }
+            if (displayFavButton) {
+                IconButton(onClick = onFavoriteClick) {
+                    Icon(
+                        if (isFavorite) Icons.Default.Star else Icons.Default.StarOutline,
+                        stringResource(R.string.toggle_favorite_icon)
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun FavoriteRemovalCard(
+    onRemoveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier = modifier) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.this_stop_is_in_your_favorites_but_doesn_t_load))
+            OutlinedButton(onClick = onRemoveClick) {
+                Text(stringResource(R.string.remove_from_favorites))
+            }
+        }
+
     }
 }
 
