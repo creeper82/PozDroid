@@ -92,7 +92,10 @@ fun PozDroidApp(
             }
             composable(route = PozDroidScreen.Home.name) {
                 PozDroidHomeScreen(
-                    modifier = screenModifier
+                    modifier = Modifier.fillMaxSize(),
+                    onFavoriteSelected = {
+                        navController.navigate("${PozDroidScreen.Departures.name}/$it")
+                    }
                 )
             }
             composable(route = PozDroidScreen.Search.name) {

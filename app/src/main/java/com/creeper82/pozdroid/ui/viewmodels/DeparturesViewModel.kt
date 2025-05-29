@@ -1,7 +1,9 @@
 package com.creeper82.pozdroid.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import com.creeper82.pozdroid.services.impl.DatabaseHelper
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
+import com.creeper82.pozdroid.types.Favorite
 import com.creeper82.pozdroid.types.responses.DeparturesResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +14,7 @@ data class DeparturesUiState(
     val departures: DeparturesResponse? = null,
     val isLoading: Boolean = false,
     val isError: Boolean = false,
+    val isFavorite: Boolean = false
 )
 
 class DeparturesViewModel : ViewModel() {
@@ -33,6 +36,25 @@ class DeparturesViewModel : ViewModel() {
         }
     }
 
+    suspend fun fetchFavoriteStatus(bollardSymbol: String) {
+        setIsFavorite(DatabaseHelper.isFavorite(bollardSymbol))
+    }
+
+    suspend fun toggleFavorite(bollardSymbol: String, favName: String) {
+        if (DatabaseHelper.isFavorite(bollardSymbol)) {
+            DatabaseHelper.deleteFavoriteByBollardSymbol(bollardSymbol)
+            setIsFavorite(false)
+        } else {
+            DatabaseHelper.addFavorite(Favorite(favName, bollardSymbol))
+            setIsFavorite(true)
+        }
+    }
+
+    suspend fun deleteFavorite(bollardSymbol: String) {
+        DatabaseHelper.deleteFavoriteByBollardSymbol(bollardSymbol)
+        setIsFavorite(false)
+    }
+
     private fun setLoading(value: Boolean) {
         _uiState.update { current ->
             current.copy(isLoading = value)
@@ -48,6 +70,12 @@ class DeparturesViewModel : ViewModel() {
     private fun setResponse(value: DeparturesResponse) {
         _uiState.update { current ->
             current.copy(departures = value)
+        }
+    }
+
+    private fun setIsFavorite(value: Boolean) {
+        _uiState.update { current ->
+            current.copy(isFavorite = value)
         }
     }
 }

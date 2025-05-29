@@ -24,4 +24,9 @@
     <string name="air_conditioning_icon">Air conditioning icon</string>
     <string name="bike_icon">Bike icon</string>
     <string name="usb_chargers_icon">USB chargers icon</string>
+    <string name="favorite_icon">Favorite icon</string>
+    <string name="toggle_favorite_icon">Toggle favorite icon</string>
+    <string name="loading">Loading</string>
+    <string name="this_stop_is_in_your_favorites_but_doesn_t_load">This stop is in your favorites, but doesn\'t load</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
 </resources>
