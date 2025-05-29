@@ -85,6 +85,7 @@ fun PozDroidDeparturesScreen(
 
     LaunchedEffect(bollardSymbol, refreshFrequencySeconds) {
         while (true) {
+            delay(600L)
             refresh()
             delay(refreshFrequencySeconds * 1000L)
         }
