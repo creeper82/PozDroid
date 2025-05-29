@@ -82,7 +82,6 @@ class FakeApiClient : ApiInterface {
                     bike = false,
                     chargers = false,
                     lowFloor = true,
-                    lowEntrance = true,
                     ramp = true,
                     ticketMachine = false
                 )

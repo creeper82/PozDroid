@@ -15,8 +15,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Accessible
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.PedalBike
+import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.Announcement
 import com.creeper82.pozdroid.types.Departure
+import com.creeper82.pozdroid.types.Vehicle
 import com.creeper82.pozdroid.ui.SearchFailed
 import com.creeper82.pozdroid.ui.viewmodels.DeparturesViewModel
 import kotlinx.coroutines.delay
@@ -185,11 +191,7 @@ fun Departures(
 ) {
     Column(modifier = modifier) {
         departures.forEach { departure ->
-            Departure(
-                departure, modifier = Modifier
-                    .clickable(onClick = {})
-                    .padding(vertical = 16.dp, horizontal = 8.dp)
-            )
+            Departure(departure)
         }
     }
 }
@@ -212,31 +214,123 @@ fun Departure(
         color = MaterialTheme.colorScheme.primary
     )
 
+    var expanded by remember { mutableStateOf(false) }
+
     val timePrefix = if (departure.realTime) "" else "~"
     val timeText = timePrefix + if (departure.minutes == 0) "<1 min" else "${departure.minutes} min"
 
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = departure.line,
-            style = boldLargeStyle,
-            modifier = Modifier.widthIn(min = 30.dp),
-            maxLines = 1,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = departure.direction,
-            style = boldLargeStyle,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = timeText,
-            style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle
-        )
+    Column(
+        modifier = modifier
+            .clickable(onClick = { expanded = !expanded })
+            .padding(vertical = 16.dp, horizontal = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = departure.line,
+                style = boldLargeStyle,
+                modifier = Modifier.widthIn(min = 30.dp),
+                maxLines = 1,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = departure.direction,
+                style = boldLargeStyle,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = timeText,
+                style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle
+            )
+        }
+
+        if (departure.vehicle != null) {
+            VehicleIconsRow(departure.vehicle)
+        } else {
+            Spacer(Modifier.height(8.dp))
+        }
+
+        AnimatedVisibility(visible = expanded)
+        {
+            val vehicle = departure.vehicle
+
+            Column {
+                Text("ETA: " + departure.departure)
+
+                if (vehicle != null) {
+                    Text("Vehicle ID: " + vehicle.id)
+                    Text("Accessibility: " + getAccessibilityText(vehicle))
+                }
+            }
+        }
     }
+}
+
+private fun getAccessibilityText(vehicle: Vehicle): String {
+    val ramp = vehicle.ramp
+    val lowEntrance = vehicle.lowEntrance
+    val lowFloor = vehicle.lowFloor
+
+    val accessibilityText = when {
+        listOf(ramp, lowEntrance, lowFloor).all { it == null } -> "Unknown"
+        listOf(ramp, lowEntrance, lowFloor).all { it == false } -> "Inaccessible"
+        else -> listOfNotNull(
+            if (ramp == true) "ramp" else null,
+            if (lowEntrance == true) "partially low entrance" else null,
+            if (lowFloor == true) "fully low floor" else null
+        ).joinToString(", ")
+    }
+
+    return accessibilityText
+}
+
+@Composable
+fun VehicleIconsRow(
+    vehicle: Vehicle,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        if (vehicle.lowFloor == true || vehicle.lowEntrance == true || vehicle.ramp == true) {
+            VehicleIcon(
+                Icons.AutoMirrored.Filled.Accessible,
+                stringResource(R.string.wheelchair_accessibility_icon)
+            )
+        }
+        if (vehicle.airConditioned == true) {
+            VehicleIcon(
+                Icons.Default.AcUnit,
+                stringResource(R.string.air_conditioning_icon)
+            )
+        }
+        if (vehicle.bike == true) {
+            VehicleIcon(
+                Icons.Default.PedalBike,
+                stringResource(R.string.bike_icon)
+            )
+        }
+        if (vehicle.chargers == true) {
+            VehicleIcon(
+                Icons.Default.Usb,
+                stringResource(R.string.usb_chargers_icon)
+            )
+        }
+    }
+}
+
+@Composable
+fun VehicleIcon(
+    icon: ImageVector,
+    contentDescriptor: String,
+    modifier: Modifier = Modifier
+) {
+    Icon(
+        icon,
+        contentDescriptor,
+        modifier.padding(4.dp)
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
