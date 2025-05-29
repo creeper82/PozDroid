@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -119,8 +121,18 @@ fun PozDroidApp(
                 )
             }
             composable(route = "${PozDroidScreen.Departures.name}/{id}") {
+                var refreshInterval by remember { mutableStateOf(SharedPrefUtils.Defaults.REFRESH_FREQUENCY_DEFAULT) }
+
+                LaunchedEffect(Unit) {
+                    refreshInterval = sharedPrefs.getFloat(
+                        SharedPrefUtils.REFRESH_FREQUENCY,
+                        SharedPrefUtils.Defaults.REFRESH_FREQUENCY_DEFAULT
+                    )
+                }
+
                 PozDroidDeparturesScreen(
                     bollardSymbol = it.arguments?.getString("id") ?: "",
+                    refreshFrequencySeconds = refreshInterval.toInt(),
                     modifier = screenModifier
                 )
             }

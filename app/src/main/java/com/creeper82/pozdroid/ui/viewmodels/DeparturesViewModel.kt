@@ -3,6 +3,7 @@ package com.creeper82.pozdroid.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
 import com.creeper82.pozdroid.types.responses.DeparturesResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,6 +25,7 @@ class DeparturesViewModel : ViewModel() {
             val response = PozNodeApiClient.getApi().getDepartures(bollardSymbol)
             setError(false)
             setResponse(response)
+        } catch (e: CancellationException) {
         } catch (e: Exception) {
             setError(true)
         } finally {
