@@ -118,13 +118,23 @@ fun StopHeader(
 fun ExpandableAnnouncements(announcements: Array<Announcement>, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
 
+    val columnModifier = if (announcements.any()) modifier.clickable(onClick = {
+        expanded = !expanded
+    }) else modifier
+
+    if (announcements.isEmpty()) expanded = false
+
     Column(
-        modifier = modifier
-            .clickable(onClick = { expanded = !expanded })
-            .padding(16.dp)
+        modifier = columnModifier
+            .padding(
+                top = 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 0.dp
+            )
     ) {
         if (announcements.any()) {
-            Row {
+            Row(Modifier.padding(bottom = 8.dp)) {
                 Text(
                     stringResource(R.string.announcements, announcements.size),
                     modifier = Modifier.weight(1f)
@@ -135,10 +145,10 @@ fun ExpandableAnnouncements(announcements: Array<Announcement>, modifier: Modifi
                 )
             }
             AnimatedVisibility(visible = expanded) {
-                Column {
+                Column(Modifier.padding(horizontal = 8.dp)) {
                     announcements.forEach { announcement ->
                         Announcement(announcement)
-                        HorizontalDivider(modifier = Modifier.padding(8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                     }
                 }
             }
