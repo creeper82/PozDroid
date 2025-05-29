@@ -2,6 +2,7 @@ package com.creeper82.pozdroid.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -48,14 +51,19 @@ import com.creeper82.pozdroid.types.Announcement
 import com.creeper82.pozdroid.types.Departure
 import com.creeper82.pozdroid.ui.SearchFailed
 import com.creeper82.pozdroid.ui.viewmodels.DeparturesViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 @Composable
 fun PozDroidDeparturesScreen(
     bollardSymbol: String,
     modifier: Modifier = Modifier,
+    refreshFrequencySeconds: Int = 10,
     viewModel: DeparturesViewModel = viewModel()
 ) {
+
     val uiState by viewModel.uiState.collectAsState()
     val loading = uiState.isLoading
     val error = uiState.isError
@@ -63,13 +71,17 @@ fun PozDroidDeparturesScreen(
     val stopName = response?.bollardName
 
     val reloadScope = rememberCoroutineScope()
+    val reloadSemaphore = remember { Semaphore(1) }
 
-    fun refresh() = reloadScope.launch {
+    suspend fun refresh() = reloadSemaphore.withPermit {
         viewModel.fetchData(bollardSymbol)
     }
 
     LaunchedEffect(bollardSymbol) {
-        refresh()
+        while (true) {
+            refresh()
+            delay(refreshFrequencySeconds * 1000L)
+        }
     }
 
     Column(modifier = modifier) {
@@ -82,7 +94,7 @@ fun PozDroidDeparturesScreen(
             error = error,
             announcements = response?.announcements ?: emptyArray(),
             departures = response?.departures ?: emptyArray(),
-            onRefreshRequest = { refresh() },
+            onRefreshRequest = { reloadScope.launch { refresh() } },
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -238,19 +250,27 @@ fun AnnouncementsAndDeparturesCard(
     onRefreshRequest: () -> Unit = {}
 ) {
     Card(modifier = modifier) {
+        val pullToRefreshState = rememberPullToRefreshState()
+        val noIndicator: @Composable (BoxScope.() -> Unit) = {}
+
         PullToRefreshBox(
             isRefreshing = loading,
             onRefresh = onRefreshRequest,
-            modifier = Modifier.fillMaxSize()
+            state = pullToRefreshState,
+            modifier = Modifier.fillMaxSize(),
+            indicator = noIndicator
         ) {
             Column(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (loading) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
-                }
+
+                LinearProgressIndicator(
+                    Modifier
+                        .fillMaxWidth()
+                        .alpha(pullToRefreshState.distanceFraction)
+                )
 
                 if (error) {
                     SearchFailed()
