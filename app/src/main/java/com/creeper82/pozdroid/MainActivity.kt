@@ -1,8 +1,6 @@
 package com.creeper82.pozdroid
 
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,10 +21,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val address =
-            prefs.getString(SharedPrefUtils.SERVER_ADDRESS, SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT)!!
-
-        PozNodeApiClient.refreshInstance(address)
+        PozNodeApiClient.reloadBasedOnPrefs(this)
     }
 }

@@ -2,28 +2,30 @@ package com.creeper82.pozdroid.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import com.creeper82.pozdroid.services.impl.PozNodeApiClient
-import com.creeper82.pozdroid.types.responses.LineStopsResponse
+import com.creeper82.pozdroid.types.responses.DeparturesResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-data class LineUiState(
-    val directions: LineStopsResponse = emptyArray(),
+data class DeparturesUiState(
+    val departures: DeparturesResponse? = null,
     val isLoading: Boolean = false,
-    val isError: Boolean = false
+    val isError: Boolean = false,
 )
 
-class LineViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(LineUiState())
+class DeparturesViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(DeparturesUiState())
     val uiState = _uiState.asStateFlow()
 
-    suspend fun fetchData(lineName: String) {
+    suspend fun fetchData(bollardSymbol: String) {
         setLoading(true)
 
         try {
-            val response = PozNodeApiClient.getApi().getLine(lineName)
+            val response = PozNodeApiClient.getApi().getDepartures(bollardSymbol)
             setError(false)
             setResponse(response)
+        } catch (e: CancellationException) {
         } catch (e: Exception) {
             setError(true)
         } finally {
@@ -43,9 +45,9 @@ class LineViewModel : ViewModel() {
         }
     }
 
-    private fun setResponse(value: LineStopsResponse) {
+    private fun setResponse(value: DeparturesResponse) {
         _uiState.update { current ->
-            current.copy(directions = value)
+            current.copy(departures = value)
         }
     }
 }

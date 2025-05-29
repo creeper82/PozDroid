@@ -2,6 +2,7 @@ package com.creeper82.pozdroid.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,20 +15,33 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Accessible
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.PedalBike
+import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,24 +50,58 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.types.Announcement
 import com.creeper82.pozdroid.types.Departure
+import com.creeper82.pozdroid.types.Vehicle
+import com.creeper82.pozdroid.ui.SearchFailed
+import com.creeper82.pozdroid.ui.viewmodels.DeparturesViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 @Composable
 fun PozDroidDeparturesScreen(
     bollardSymbol: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    refreshFrequencySeconds: Int = 10,
+    viewModel: DeparturesViewModel = viewModel()
 ) {
+
+    val uiState by viewModel.uiState.collectAsState()
+    val loading = uiState.isLoading
+    val error = uiState.isError
+    val response = uiState.departures
+    val stopName = response?.bollardName
+
+    val reloadScope = rememberCoroutineScope()
+    val reloadSemaphore = remember { Semaphore(1) }
+
+    suspend fun refresh() = reloadSemaphore.withPermit {
+        viewModel.fetchData(bollardSymbol)
+    }
+
+    LaunchedEffect(bollardSymbol, refreshFrequencySeconds) {
+        while (true) {
+            refresh()
+            delay(refreshFrequencySeconds * 1000L)
+        }
+    }
+
     Column(modifier = modifier) {
-        StopHeader("Loading...", bollardSymbol, Modifier.fillMaxWidth())
+        StopHeader(stopName ?: "Loading", bollardSymbol, Modifier.fillMaxWidth())
 
         Spacer(Modifier.height(16.dp))
 
         AnnouncementsAndDeparturesCard(
-            announcements = emptyArray(),
-            departures = emptyArray(),
-            modifier = Modifier.fillMaxWidth()
+            loading = loading,
+            error = error,
+            announcements = response?.announcements ?: emptyArray(),
+            departures = response?.departures ?: emptyArray(),
+            onRefreshRequest = { reloadScope.launch { refresh() } },
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -88,13 +136,23 @@ fun StopHeader(
 fun ExpandableAnnouncements(announcements: Array<Announcement>, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
 
+    val columnModifier = if (announcements.any()) modifier.clickable(onClick = {
+        expanded = !expanded
+    }) else modifier
+
+    if (announcements.isEmpty()) expanded = false
+
     Column(
-        modifier = modifier
-            .clickable(onClick = { expanded = !expanded })
-            .padding(16.dp)
+        modifier = columnModifier
+            .padding(
+                top = 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 0.dp
+            )
     ) {
         if (announcements.any()) {
-            Row {
+            Row(Modifier.padding(bottom = 8.dp)) {
                 Text(
                     stringResource(R.string.announcements, announcements.size),
                     modifier = Modifier.weight(1f)
@@ -105,10 +163,10 @@ fun ExpandableAnnouncements(announcements: Array<Announcement>, modifier: Modifi
                 )
             }
             AnimatedVisibility(visible = expanded) {
-                Column {
+                Column(Modifier.padding(horizontal = 8.dp)) {
                     announcements.forEach { announcement ->
                         Announcement(announcement)
-                        HorizontalDivider(modifier = Modifier.padding(8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                     }
                 }
             }
@@ -133,11 +191,7 @@ fun Departures(
 ) {
     Column(modifier = modifier) {
         departures.forEach { departure ->
-            Departure(
-                departure, modifier = Modifier
-                    .clickable(onClick = {})
-                    .padding(vertical = 16.dp, horizontal = 8.dp)
-            )
+            Departure(departure)
         }
     }
 }
@@ -160,51 +214,176 @@ fun Departure(
         color = MaterialTheme.colorScheme.primary
     )
 
-    val timePrefix = if (departure.realTime) "" else "~"
-    val timeText = timePrefix + if (departure.minutes == 0) "<1 min" else "${departure.minutes} min"
+    var expanded by remember { mutableStateOf(false) }
 
+    val timeText =
+        if (departure.minutes == 0) "<1 min"
+        else if (departure.minutes >= 60) departure.departure
+        else "${departure.minutes} min"
+
+    Column(
+        modifier = modifier
+            .clickable(onClick = { expanded = !expanded })
+            .padding(vertical = 16.dp, horizontal = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = departure.line,
+                style = boldLargeStyle,
+                modifier = Modifier.widthIn(min = 30.dp),
+                maxLines = 1,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = departure.direction,
+                style = boldLargeStyle,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = timeText,
+                style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle,
+                modifier = Modifier.widthIn(min = 70.dp),
+                textAlign = TextAlign.End
+            )
+        }
+
+        if (departure.vehicle != null) {
+            VehicleIconsRow(departure.vehicle)
+        }
+
+        AnimatedVisibility(visible = expanded)
+        {
+            val vehicle = departure.vehicle
+
+            Column {
+                if (vehicle == null) Spacer(Modifier.height(8.dp))
+
+                Text("ETA: " + departure.departure)
+
+                if (vehicle != null) {
+                    Text("Vehicle ID: " + vehicle.id)
+                    Text("Accessibility: " + getAccessibilityText(vehicle))
+                }
+            }
+        }
+    }
+}
+
+private fun getAccessibilityText(vehicle: Vehicle): String {
+    val ramp = vehicle.ramp
+    val lowEntrance = vehicle.lowEntrance
+    val lowFloor = vehicle.lowFloor
+
+    val accessibilityText = when {
+        listOf(ramp, lowEntrance, lowFloor).all { it == null } -> "Unknown"
+        listOf(ramp, lowEntrance, lowFloor).all { it == false } -> "Inaccessible"
+        else -> listOfNotNull(
+            if (ramp == true) "ramp" else null,
+            if (lowEntrance == true) "partially low entrance" else null,
+            if (lowFloor == true) "fully low floor" else null
+        ).joinToString(", ")
+    }
+
+    return accessibilityText
+}
+
+@Composable
+fun VehicleIconsRow(
+    vehicle: Vehicle,
+    modifier: Modifier = Modifier
+) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = departure.line,
-            style = boldLargeStyle,
-            modifier = Modifier.widthIn(min = 30.dp),
-            maxLines = 1,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = departure.direction,
-            style = boldLargeStyle,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = timeText,
-            style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle
-        )
+        if (vehicle.lowFloor == true || vehicle.lowEntrance == true || vehicle.ramp == true) {
+            VehicleIcon(
+                Icons.AutoMirrored.Filled.Accessible,
+                stringResource(R.string.wheelchair_accessibility_icon)
+            )
+        }
+        if (vehicle.airConditioned == true) {
+            VehicleIcon(
+                Icons.Default.AcUnit,
+                stringResource(R.string.air_conditioning_icon)
+            )
+        }
+        if (vehicle.bike == true) {
+            VehicleIcon(
+                Icons.Default.PedalBike,
+                stringResource(R.string.bike_icon)
+            )
+        }
+        if (vehicle.chargers == true) {
+            VehicleIcon(
+                Icons.Default.Usb,
+                stringResource(R.string.usb_chargers_icon)
+            )
+        }
     }
 }
 
 @Composable
+fun VehicleIcon(
+    icon: ImageVector,
+    contentDescriptor: String,
+    modifier: Modifier = Modifier
+) {
+    Icon(
+        icon,
+        contentDescriptor,
+        modifier.padding(4.dp)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun AnnouncementsAndDeparturesCard(
     announcements: Array<Announcement>,
     departures: Array<Departure>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loading: Boolean = false,
+    error: Boolean = false,
+    onRefreshRequest: () -> Unit = {}
 ) {
     Card(modifier = modifier) {
-        Column {
-            ExpandableAnnouncements(announcements, modifier = Modifier.fillMaxWidth())
+        val pullToRefreshState = rememberPullToRefreshState()
+        val noIndicator: @Composable (BoxScope.() -> Unit) = {}
 
-            Spacer(Modifier.height(8.dp))
-
-            Departures(
-                departures,
-                modifier = Modifier
+        PullToRefreshBox(
+            isRefreshing = loading,
+            onRefresh = onRefreshRequest,
+            state = pullToRefreshState,
+            modifier = Modifier.fillMaxSize(),
+            indicator = noIndicator
+        ) {
+            Column(
+                Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-            )
+            ) {
+
+                LinearProgressIndicator(
+                    Modifier
+                        .fillMaxWidth()
+                        .alpha(pullToRefreshState.distanceFraction)
+                )
+
+                if (error) {
+                    SearchFailed()
+                } else {
+                    ExpandableAnnouncements(announcements, modifier = Modifier.fillMaxWidth())
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Departures(
+                        departures,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
+                }
+            }
         }
     }
 }

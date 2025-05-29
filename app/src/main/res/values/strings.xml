@@ -20,4 +20,8 @@
     <string name="line_icon">Line icon</string>
     <string name="expand_directions_arrow">Expand directions arrow</string>
     <string name="go_back">Go back</string>
+    <string name="wheelchair_accessibility_icon">Wheelchair accessibility icon</string>
+    <string name="air_conditioning_icon">Air conditioning icon</string>
+    <string name="bike_icon">Bike icon</string>
+    <string name="usb_chargers_icon">USB chargers icon</string>
 </resources>

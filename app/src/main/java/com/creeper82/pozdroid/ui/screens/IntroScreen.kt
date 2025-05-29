@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.SharedPrefUtils
+import me.zhanghai.compose.preference.switchPreference
 import me.zhanghai.compose.preference.textFieldPreference
 
 @Composable
@@ -32,24 +32,24 @@ fun PozDroidIntroScreen(
     modifier: Modifier = Modifier,
     onAddressSelected: () -> Unit = {}
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Surface(
-            tonalElevation = 2.dp,
-            shadowElevation = 2.dp,
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            WelcomeAndLogo(modifier = Modifier.padding(16.dp))
+        item {
+            Surface(
+                tonalElevation = 2.dp,
+                shadowElevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                WelcomeAndLogo(modifier = Modifier.padding(16.dp))
+            }
+            Spacer(
+                modifier = Modifier.height(64.dp)
+            )
         }
-        Spacer(
-            modifier = Modifier.height(64.dp)
-        )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        item {
             Text(
                 text = stringResource(R.string.app_requires_poznode_configure_the_connection),
                 textAlign = TextAlign.Center
@@ -57,9 +57,22 @@ fun PozDroidIntroScreen(
             Spacer(
                 modifier = Modifier.height(16.dp)
             )
-            AddressSettings(
-                modifier = Modifier.fillMaxWidth(),
-            )
+        }
+        textFieldPreference(
+            key = SharedPrefUtils.SERVER_ADDRESS,
+            defaultValue = SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT,
+            title = { Text(stringResource(R.string.server_address)) },
+            textToValue = parseUrl,
+            summary = { Text(text = it) }
+        )
+
+        switchPreference(
+            key = SharedPrefUtils.USE_FAKE_DATA,
+            defaultValue = SharedPrefUtils.Defaults.USE_FAKE_DATA_DEFAULT,
+            title = { Text("Use fake data") },
+            summary = { Text("Fetch the data from a sample dataset, instead of connecting to the API") }
+        )
+        item {
             Spacer(
                 modifier = Modifier.height(32.dp)
             )
@@ -73,21 +86,6 @@ fun PozDroidIntroScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun AddressSettings(
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(modifier = modifier) {
-        textFieldPreference(
-            key = SharedPrefUtils.SERVER_ADDRESS,
-            defaultValue = SharedPrefUtils.Defaults.SERVER_ADDRESS_DEFAULT,
-            title = { Text(stringResource(R.string.server_address)) },
-            textToValue = parseUrl,
-            summary = { Text(text = it) }
-        )
     }
 }
 

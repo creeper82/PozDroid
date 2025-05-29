@@ -121,10 +121,8 @@ fun SearchTextField(
         else searchResultsLines
 
     LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotEmpty()) {
             delay(800)
             onSearch(searchQuery)
-        }
     }
 
     Box(

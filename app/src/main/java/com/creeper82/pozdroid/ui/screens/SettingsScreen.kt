@@ -7,11 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.creeper82.pozdroid.SharedPrefUtils
 import com.creeper82.pozdroid.R
+import com.creeper82.pozdroid.SharedPrefUtils
 import me.zhanghai.compose.preference.footerPreference
 import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.sliderPreference
+import me.zhanghai.compose.preference.switchPreference
 import me.zhanghai.compose.preference.textFieldPreference
 
 val parseUrl: (String) -> String = { url ->
@@ -26,8 +27,7 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
     ) {
         preferenceCategory(
             key = "server",
-            title = { Text(stringResource(R.string.server_configuration)) },
-            modifier = Modifier
+            title = { Text(stringResource(R.string.server_configuration)) }
         )
 
         textFieldPreference(
@@ -36,6 +36,18 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
             title = { Text(stringResource(R.string.server_address)) },
             textToValue = parseUrl,
             summary = { Text(text = it) }
+        )
+
+        switchPreference(
+            key = SharedPrefUtils.USE_FAKE_DATA,
+            defaultValue = SharedPrefUtils.Defaults.USE_FAKE_DATA_DEFAULT,
+            title = { Text("Use fake data") },
+            summary = { Text("Fetch the data from a sample dataset, instead of connecting to the API") }
+        )
+
+        preferenceCategory(
+            key = "ui",
+            title = {Text("UI configuration")}
         )
 
         sliderPreference(
@@ -49,7 +61,7 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
 
         footerPreference(
             key = "footer",
-            summary = { Text(stringResource(R.string.you_are_using_pozdroid_v1_0)) }
+            summary = { Text("Changing the URL or fake mode requires restart!") }
         )
     }
 }
