@@ -333,7 +333,7 @@ fun VehicleIcon(
     Icon(
         icon,
         contentDescriptor,
-        modifier.padding(4.dp)
+        modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp)
     )
 }
 
