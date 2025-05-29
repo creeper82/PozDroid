@@ -17,17 +17,22 @@ class LineViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(LineUiState())
     val uiState = _uiState.asStateFlow()
 
-    suspend fun fetchData(lineName: String) {
-        setLoading(true)
+    private var searchComplete = false
 
-        try {
-            val response = PozNodeApiClient.getApi().getLine(lineName)
-            setError(false)
-            setResponse(response)
-        } catch (e: Exception) {
-            setError(true)
-        } finally {
-            setLoading(false)
+    suspend fun fetchData(lineName: String) {
+        if (!searchComplete) {
+            setLoading(true)
+
+            try {
+                val response = PozNodeApiClient.getApi().getLine(lineName)
+                setError(false)
+                setResponse(response)
+                searchComplete = true
+            } catch (e: Exception) {
+                setError(true)
+            } finally {
+                setLoading(false)
+            }
         }
     }
 

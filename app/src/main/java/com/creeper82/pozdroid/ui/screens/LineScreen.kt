@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,6 +39,7 @@ import com.creeper82.pozdroid.types.Bollard
 import com.creeper82.pozdroid.types.DirectionWithStops
 import com.creeper82.pozdroid.ui.ResultRow
 import com.creeper82.pozdroid.ui.SearchFailed
+import com.creeper82.pozdroid.ui.viewmodels.LineHeaderViewModel
 import com.creeper82.pozdroid.ui.viewmodels.LineViewModel
 
 @Composable
@@ -111,17 +111,20 @@ fun LineHeader(
     lineName: String,
     directions: Array<DirectionWithStops>,
     modifier: Modifier = Modifier,
+    viewModel: LineHeaderViewModel = viewModel(),
     onDirectionSelected: (direction: DirectionWithStops) -> Unit = {}
 ) {
-    var dropDownExpanded by remember { mutableStateOf(false) }
-    var selectedDirection by remember { mutableStateOf<DirectionWithStops?>(null) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    val dropDownExpanded = uiState.isExpanded
+    val selectedDirection = uiState.selectedDirection
 
     Card(
         modifier = modifier
     ) {
         Row(
             modifier = Modifier
-                .clickable(onClick = { dropDownExpanded = true })
+                .clickable(onClick = { viewModel.setExpanded(true) })
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -148,15 +151,15 @@ fun LineHeader(
 
             DropdownMenu(
                 expanded = dropDownExpanded,
-                onDismissRequest = { dropDownExpanded = false })
+                onDismissRequest = { viewModel.setExpanded(false) })
             {
                 directions.forEach { dir ->
                     DropdownMenuItem(
                         text = { Text(dir.direction) },
                         onClick = {
-                            selectedDirection = dir
+                            viewModel.setSelectedDirection(dir)
                             onDirectionSelected(dir)
-                            dropDownExpanded = false
+                            viewModel.setExpanded(false)
                         }
                     )
                 }
