@@ -216,8 +216,10 @@ fun Departure(
 
     var expanded by remember { mutableStateOf(false) }
 
-    val timePrefix = if (departure.realTime) "" else "~"
-    val timeText = timePrefix + if (departure.minutes == 0) "<1 min" else "${departure.minutes} min"
+    val timeText =
+        if (departure.minutes == 0) "<1 min"
+        else if (departure.minutes >= 60) departure.departure
+        else "${departure.minutes} min"
 
     Column(
         modifier = modifier
