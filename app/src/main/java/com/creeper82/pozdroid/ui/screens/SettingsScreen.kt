@@ -1,15 +1,19 @@
 package com.creeper82.pozdroid.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.creeper82.pozdroid.R
 import com.creeper82.pozdroid.SharedPrefUtils
-import me.zhanghai.compose.preference.footerPreference
+import com.creeper82.pozdroid.services.impl.PozNodeApiClient
 import me.zhanghai.compose.preference.preferenceCategory
 import me.zhanghai.compose.preference.sliderPreference
 import me.zhanghai.compose.preference.switchPreference
@@ -22,6 +26,8 @@ val parseUrl: (String) -> String = { url ->
 
 @Composable
 fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+
     LazyColumn(
         modifier = modifier
     ) {
@@ -45,9 +51,18 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
             summary = { Text("Fetch the data from a sample dataset, instead of connecting to the API") }
         )
 
+        item {
+            OutlinedButton(
+                onClick = { PozNodeApiClient.reloadBasedOnPrefs(context) },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text("Apply server settings")
+            }
+        }
+
         preferenceCategory(
             key = "ui",
-            title = {Text("UI configuration")}
+            title = { Text("UI configuration") }
         )
 
         sliderPreference(
@@ -57,11 +72,6 @@ fun PozDroidSettingsScreen(modifier: Modifier = Modifier) {
             summary = { Text(text = stringResource(R.string.every_seconds, it.toInt())) },
             valueRange = 10f..30f,
             valueSteps = 3
-        )
-
-        footerPreference(
-            key = "footer",
-            summary = { Text("Changing the URL or fake mode requires restart!") }
         )
     }
 }

@@ -66,7 +66,7 @@ object PozNodeApiClient {
             } catch (e: Exception) {
                 Toast.makeText(
                     context,
-                    "URL failure. Verify that the server URL is correct and valid!",
+                    "URL failure. Verify the server URL! Temporarily using localhost:5000/api",
                     Toast.LENGTH_LONG
                 ).show()
             }
