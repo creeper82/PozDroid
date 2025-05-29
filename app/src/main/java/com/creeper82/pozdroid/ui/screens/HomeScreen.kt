@@ -3,25 +3,33 @@ package com.creeper82.pozdroid.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.creeper82.pozdroid.R
-import com.creeper82.pozdroid.types.FavoriteBollard
+import com.creeper82.pozdroid.services.impl.DatabaseHelper
+import com.creeper82.pozdroid.types.Favorite
 import com.creeper82.pozdroid.ui.Header
+import com.creeper82.pozdroid.ui.ResultRow
 
 @Composable
 fun PozDroidHomeScreen(
+    onFavoriteSelected: (symbol: String) -> Unit,
     modifier: Modifier = Modifier,
-    favoriteBollards: Array<FavoriteBollard> = emptyArray()
 ) {
+    val favorites by DatabaseHelper.getFavorites().collectAsState(emptyList())
+
     Column(
         modifier = modifier,
     ) {
-        if (favoriteBollards.any()) {
-            Favorites(favoriteBollards)
+        if (favorites.any()) {
+            Favorites(favorites, onClick = { onFavoriteSelected(it.bollardSymbol) })
         } else {
             Welcome()
         }
@@ -38,6 +46,29 @@ fun Welcome(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Favorites(favoriteBollards: Array<FavoriteBollard>, modifier: Modifier = Modifier) {
+fun Favorites(
+    favorites: List<Favorite>,
+    onClick: (fav: Favorite) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Header("Favorites", modifier = modifier)
+
+    favorites.forEach { f ->
+        Favorite(f, onClick = { onClick(f) })
+    }
+}
+
+@Composable
+fun Favorite(
+    favorite: Favorite,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ResultRow(
+        text = favorite.name,
+        modifier = modifier,
+        icon = Icons.Default.Star,
+        onClick = onClick,
+        iconDescription = stringResource(R.string.favorite_icon)
+    )
 }

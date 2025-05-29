@@ -24,4 +24,5 @@
     <string name="air_conditioning_icon">Air conditioning icon</string>
     <string name="bike_icon">Bike icon</string>
     <string name="usb_chargers_icon">USB chargers icon</string>
+    <string name="favorite_icon">Favorite icon</string>
 </resources>
