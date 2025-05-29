@@ -245,14 +245,14 @@ fun Departure(
             Spacer(Modifier.width(4.dp))
             Text(
                 text = timeText,
-                style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle
+                style = if (departure.realTime) boldLargePrimaryColorStyle else largeStyle,
+                modifier = Modifier.widthIn(min = 70.dp),
+                textAlign = TextAlign.End
             )
         }
 
         if (departure.vehicle != null) {
             VehicleIconsRow(departure.vehicle)
-        } else {
-            Spacer(Modifier.height(8.dp))
         }
 
         AnimatedVisibility(visible = expanded)
@@ -260,6 +260,8 @@ fun Departure(
             val vehicle = departure.vehicle
 
             Column {
+                if (vehicle == null) Spacer(Modifier.height(8.dp))
+
                 Text("ETA: " + departure.departure)
 
                 if (vehicle != null) {
