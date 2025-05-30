@@ -1,8 +1,10 @@
 package com.creeper82.pozdroid.ui.screens
 
 import android.preference.PreferenceManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +71,7 @@ fun PozDroidApp(
             )
         },
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { if (!showIntro) PozDroidBottomNav(navController) }
     ) { innerPadding ->
         NavHost(
