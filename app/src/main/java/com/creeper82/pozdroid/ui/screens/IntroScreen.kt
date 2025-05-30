@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -96,11 +97,11 @@ fun WelcomeAndLogo(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         Image(
-            painter = painterResource(R.drawable.ic_launcher_foreground),
+            painter = painterResource(R.drawable.app_icon),
             contentDescription = stringResource(R.string.application_logo),
             modifier = Modifier
-                .height(200.dp)
-                .width(200.dp)
+                .size(150.dp)
+                .padding(32.dp)
         )
         Text(
             text = stringResource(R.string.welcome),
