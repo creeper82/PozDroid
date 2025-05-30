@@ -117,11 +117,14 @@ fun PozDroidDeparturesScreen(
 
         if (error and isFavorite) {
             Spacer(Modifier.height(16.dp))
-            FavoriteRemovalCard(onRemoveClick = {
-                toggleFavScope.launch {
-                    viewModel.deleteFavorite(bollardSymbol)
-                }
-            })
+            FavoriteRemovalCard(
+                onRemoveClick = {
+                    toggleFavScope.launch {
+                        viewModel.deleteFavorite(bollardSymbol)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         Spacer(Modifier.height(16.dp))
