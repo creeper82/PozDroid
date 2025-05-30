@@ -325,15 +325,19 @@ fun Departure(
         AnimatedVisibility(visible = expanded)
         {
             val vehicle = departure.vehicle
+            val infoTextStyle = TextStyle(
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-            Column {
+            Column(Modifier.padding(horizontal = 6.dp)) {
                 if (vehicle == null) Spacer(Modifier.height(8.dp))
 
-                Text("ETA: " + departure.departure)
+                Text("ETA: " + departure.departure, style = infoTextStyle)
 
                 if (vehicle != null) {
-                    Text("Vehicle ID: " + vehicle.id)
-                    Text("Accessibility: " + getAccessibilityText(vehicle))
+                    Text("Vehicle ID: " + vehicle.id, style = infoTextStyle)
+                    Text("Accessibility: " + getAccessibilityText(vehicle), style = infoTextStyle)
                 }
             }
         }
